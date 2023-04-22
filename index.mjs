@@ -95,38 +95,36 @@ const applyFilter = (val, filterString, isDate) => {
     if (or) {
       if (
         (comparison === 'eq' && val === target) ||
-        (comparison === 'gt' && val > target) ||
-        (comparison === 'lt' && val < target) ||
+        (comparison === 'gt' && !isNaN(val) && val > target) ||
+        (comparison === 'lt' && !isNaN(val) && val < target) ||
         (!isDate && comparison === 'like' && val.indexOf(target) > -1)
       ) {
         match = true
-        break
+        continue
       }
     } else {
       match = (
         (comparison === 'eq' && val === target) ||
-        (comparison === 'gt' && val > target) ||
-        (comparison === 'lt' && val < target) ||
+        (comparison === 'gt' && !isNaN(val) && val > target) ||
+        (comparison === 'lt' && !isNaN(val) && val < target) ||
         (!isDate && comparison === 'like' && val.indexOf(target) > -1)
       )
+      if (!match) {
+        break
+      }
     }
   }
   return match
 }
 
-fastify.get('/', async (req, reply) => {
-  return db.data.breaches.slice(0, 10)
-})
-
-fastify.get('/states/:code', async (req, reply) => {
+const extractQueryVars = (query) => {
   let {
     limit,
     offset,
     sort,
     desc,
     ...rest
-  } = req.query
-  const { code: stateCode } = req.params
+  } = query
   limit = parseInt(limit, 10)
   if (isNaN(limit)) {
     limit = 10
@@ -137,14 +135,54 @@ fastify.get('/states/:code', async (req, reply) => {
   }
   sort = sort || 'reported_date'
   desc = desc !== undefined
-
   const filters = Object.entries(pick(rest, COLUMNS))
+
+  return {
+    limit,
+    offset,
+    sort,
+    desc,
+    filters,
+  }
+}
+const applyFilters = (filters) => (item) => (
+  filters.reduce((match, [key, val]) => {
+    return match && applyFilter(item[key], val, DATE_FIELDS.includes(key))
+  }, true)
+)
+
+fastify.get('/', async (req, reply) => {
+  const {
+    offset,
+    limit,
+    sort,
+    desc,
+    filters,
+  } = extractQueryVars(req.query)
+  const filterFn = applyFilters(filters)
+  return db.data.breaches
+    .filter(filterFn)
+    .sort(DATE_FIELDS.includes(sort) ? sortByDate(sort, desc) : sortBy(sort, desc))
+    .slice(offset, offset + limit)
+})
+
+// http://localhost:3000/states/WA?limit=10&sort=number_affected&entity_name=like:Navigation&number_affected=lt:2200
+// http://localhost:3000/states/WA?limit=10&sort=number_affected&desc&number_affected=gt:5000ANDlt:8000
+fastify.get('/states/:code', async (req, reply) => {
+  const {
+    offset,
+    limit,
+    sort,
+    desc,
+    filters,
+  } = extractQueryVars(req.query)
+  const { code: stateCode } = req.params
+
+  const filterFn = applyFilters(filters)
   return db.data.breaches
     .filter((breach) => (
       breach.state === stateCode &&
-      filters.reduce((match, [key, val]) => {
-        return match && applyFilter(breach[key], val, DATE_FIELDS.includes(key))
-      }, true)
+      filterFn(breach)
     ))
     .sort(DATE_FIELDS.includes(sort) ? sortByDate(sort, desc) : sortBy(sort, desc))
     .slice(offset, offset + limit)
