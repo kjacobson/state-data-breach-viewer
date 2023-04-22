@@ -36,6 +36,13 @@ const pick = (obj, keys) => (
   }, {})
 )
 
+const omit = (obj, keys) => {
+  const exclude = new Set(keys)
+  return Object.fromEntries(
+    Object.entries(obj).filter(e => !exclude.has(e[0]))
+  )
+}
+
 const sortBy = (key, desc) => {
   return (a, b) => {
     return desc ? (
@@ -126,6 +133,7 @@ const extractQueryVars = (query) => {
     offset,
     sort,
     desc,
+    exclude,
     ...rest
   } = query
   limit = parseInt(limit, 10)
@@ -138,6 +146,9 @@ const extractQueryVars = (query) => {
   }
   sort = sort || 'reported_date'
   desc = desc !== undefined
+  if (exclude && exclude.length) { 
+    exclude = exclude.split(',') 
+  }
   const filters = Object.entries(pick(rest, COLUMNS))
 
   return {
@@ -146,6 +157,7 @@ const extractQueryVars = (query) => {
     sort,
     desc,
     filters,
+    exclude,
   }
 }
 const applyFilters = (filters) => (item) => (
@@ -156,6 +168,7 @@ const applyFilters = (filters) => (item) => (
 
 // http://localhost:3000/?limit=10&sort=number_affected&desc&number_affected=gt:5000ANDlt:8000
 // http://localhost:3000/?limit=10&sort=number_affected&desc&reported_date=gt:01/01/2023ANDlt:04/01/2023
+// http://localhost:3000/?limit=20&sort=number_affected&desc&reported_date=gt:01/01/2022&state=eq:DE
 fastify.get('/', async (req, reply) => {
   const {
     offset,
@@ -163,16 +176,19 @@ fastify.get('/', async (req, reply) => {
     sort,
     desc,
     filters,
+    exclude,
   } = extractQueryVars(req.query)
   const filterFn = applyFilters(filters)
   return db.data.breaches
     .filter(filterFn)
     .sort(DATE_FIELDS.includes(sort) ? sortByDate(sort, desc) : sortBy(sort, desc))
     .slice(offset, offset + limit)
+    .map(obj => exclude && exclude.length ? omit(obj, exclude) : obj)
 })
 
 // http://localhost:3000/states/WA?limit=10&sort=number_affected&entity_name=like:Navigation&number_affected=lt:2200
 // http://localhost:3000/states/WA?limit=10&sort=number_affected&desc&number_affected=gt:5000ANDlt:8000
+// http://localhost:3000/states/DE?limit=20&sort=number_affected&desc&reported_date=gt:01/01/2022
 fastify.get('/states/:code', async (req, reply) => {
   const {
     offset,
@@ -180,6 +196,7 @@ fastify.get('/states/:code', async (req, reply) => {
     sort,
     desc,
     filters,
+    exclude,
   } = extractQueryVars(req.query)
   const { code: stateCode } = req.params
 
@@ -191,6 +208,7 @@ fastify.get('/states/:code', async (req, reply) => {
     ))
     .sort(DATE_FIELDS.includes(sort) ? sortByDate(sort, desc) : sortBy(sort, desc))
     .slice(offset, offset + limit)
+    .map(obj => exclude && exclude.length ? omit(obj, exclude) : obj)
 })
 
 const start = async () => {
