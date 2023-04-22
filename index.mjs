@@ -91,7 +91,10 @@ const applyFilter = (val, filterString, isDate) => {
   }
   let match = false
   for (const part of parts) {
-    const [comparison, target] = part.split(':')
+    let [comparison, target] = part.split(':')
+    if (isDate) {
+      target = new Date(target)
+    }
     if (or) {
       if (
         (comparison === 'eq' && val === target) ||
@@ -151,6 +154,8 @@ const applyFilters = (filters) => (item) => (
   }, true)
 )
 
+// http://localhost:3000/?limit=10&sort=number_affected&desc&number_affected=gt:5000ANDlt:8000
+// http://localhost:3000/?limit=10&sort=number_affected&desc&reported_date=gt:01/01/2023ANDlt:04/01/2023
 fastify.get('/', async (req, reply) => {
   const {
     offset,
