@@ -22,10 +22,28 @@ const COLUMNS = [
   'number_affected',
   'data_accessed',
   'notice_methods',
+  'published_date',
   'breach_type',
   'letter_url',
   'url',
 ]
+const COLS_BY_STATE = {
+  CA: ['entity_name', 'breach_dates', 'reported_date'],
+  DE: ['entity_name', 'start_date', 'end_date', 'breach_dates', 'reported_date', 'number_affected'],
+  HI: ['entity_name', 'reported_date', 'number_affected', 'breach_type', 'letter_url'],
+  IA: ['entity_name', 'reported_date', 'letter_url'],
+  MD: ['entity_name', 'reported_date', 'number_affected', 'date_types', 'breach_type'],
+  ME: ['entity_name', 'reported_date', 'url'],
+  MT: ['entity_name', 'letter_url', 'start_date', 'end_date', 'reported_date', 'number_affected'],
+  ND: ['entity_name', 'dba', 'letter_url', 'breach_dates', 'start_date', 'end_date', 'reported_date', 'number_affected'],
+  NH: ['entity_name', 'reported_date', 'url'],
+  NJ: ['entity_name', 'reported_date', 'url'],
+  TX: [
+    'entity_name', 'business_address', 'business_city', 'business_state', 'business_zip',
+    'published_date', 'number_affected', 'data_accessed', 'notice_methods'
+  ],
+  WA: ['entity_name', 'start_date', 'reported_date', 'number_affected', 'data_accessed', 'letter_url']
+}
 
 const pick = (obj, keys) => (
   keys.reduce((acc, key) => {
@@ -169,6 +187,7 @@ const applyFilters = (filters) => (item) => (
 // http://localhost:3000/?limit=10&sort=number_affected&desc&number_affected=gt:5000ANDlt:8000
 // http://localhost:3000/?limit=10&sort=number_affected&desc&reported_date=gt:01/01/2023ANDlt:04/01/2023
 // http://localhost:3000/?limit=20&sort=number_affected&desc&reported_date=gt:01/01/2022&state=eq:DE
+// http://localhost:3000/?limit=20&sort=number_affected&desc&exclude=business_address,business_city,business_state,business_zip
 fastify.get('/', async (req, reply) => {
   const {
     offset,
@@ -189,6 +208,7 @@ fastify.get('/', async (req, reply) => {
 // http://localhost:3000/states/WA?limit=10&sort=number_affected&entity_name=like:Navigation&number_affected=lt:2200
 // http://localhost:3000/states/WA?limit=10&sort=number_affected&desc&number_affected=gt:5000ANDlt:8000
 // http://localhost:3000/states/DE?limit=20&sort=number_affected&desc&reported_date=gt:01/01/2022
+// http://localhost:3000/states/WA?limit=20&sort=number_affected&desc&exclude=business_address,business_city,business_state,business_zip
 fastify.get('/states/:code', async (req, reply) => {
   const {
     offset,
@@ -208,6 +228,7 @@ fastify.get('/states/:code', async (req, reply) => {
     ))
     .sort(DATE_FIELDS.includes(sort) ? sortByDate(sort, desc) : sortBy(sort, desc))
     .slice(offset, offset + limit)
+    .map(obj => pick(obj, COLS_BY_STATE[stateCode]))
     .map(obj => exclude && exclude.length ? omit(obj, exclude) : obj)
 })
 
