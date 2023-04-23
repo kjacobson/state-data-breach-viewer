@@ -1,4 +1,8 @@
+import path from 'path'
+import { fileURLToPath } from 'url';
 import Fastify from 'fastify'
+import fstatic from '@fastify/static'
+import helmet from '@fastify/helmet'
 import { Low } from 'lowdb'
 import { JSONFile } from 'lowdb/node'
 const fastify = Fastify({ logger: true })
@@ -43,6 +47,97 @@ const COLS_BY_STATE = {
     'published_date', 'number_affected', 'data_accessed', 'notice_methods'
   ],
   WA: ['entity_name', 'start_date', 'reported_date', 'number_affected', 'data_accessed', 'letter_url']
+}
+
+const replaceSort = (query, sort) => {
+  const newQuery = Object.assign({}, query)
+  newQuery.sort = sort
+  if (sort !== newQuery.sort) {
+    delete newQuery.desc
+  } else {
+    if (newQuery.desc !== undefined) {
+      delete newQuery.desc
+    } else {
+      newQuery.desc = ''
+    }
+  }
+  return new URLSearchParams(newQuery).toString()
+}
+const nextPage = (query) => {
+  const newQuery= Object.assign({}, query)
+  newQuery.offset = parseInt(query.offset, 10) || 0
+  newQuery.limit = parseInt(query.limit, 10) || 20
+  newQuery.offset += newQuery.limit
+  return new URLSearchParams(newQuery).toString()
+}
+const prevPage = (query) => {
+  const newQuery= Object.assign({}, query)
+  newQuery.offset = parseInt(query.offset, 10) || 0
+  newQuery.limit = parseInt(query.limit, 10) || 20
+  if (newQuery.offset !== 0) {
+    newQuery.offset -= newQuery.limit
+  }
+  return new URLSearchParams(newQuery).toString()
+}
+const indexPage = (data, query) => {
+  const hasData = data.length > 0;
+  const keys = data.length ? Object.keys(data[0]) : undefined;
+  return `
+    <!doctype html>
+    <html lang="en">
+
+    <head>
+      <meta charset="utf-8">
+      <title>Data breach browser</title>
+      <meta name="description" content="">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+
+      <link rel="icon" href="/favicon.ico" sizes="any">
+      <link rel="icon" href="/icon.svg" type="image/svg+xml">
+      <link rel="apple-touch-icon" href="icon.png">
+
+      <link rel="stylesheet" href="public/normalize.css">
+      <link rel="stylesheet" href="public/index.css">
+
+    </head>
+
+    <body>
+      <h1>Viewing all states</h1>
+      ${ hasData ? (
+        `<table>
+          <thead>
+            <tr>
+              ${keys.map(key => (
+                `<th>
+                  <a href="/?${replaceSort(query, key)}">
+                    ${key}
+                  </a>
+                </th>`
+              )).join('') }
+            </tr>
+          </thead>
+          <tbody>
+            ${ data.map(entry => (
+              `<tr>
+                ${keys.map(key => (
+                  `<td>${entry[key]}</td>`
+                )).join('') }
+              </tr>`
+            )).join('') }
+          </tbody>
+          <tfoot>
+            <a href="/?${prevPage(query)}">Previous page</a>
+            |
+            <a href="/?${nextPage(query)}">Next page</a>
+          </tfoot>
+        </table>`
+      ) : (
+        `<p>No data found that matches your query</p>`
+      ) }
+    </body>
+
+    </html>
+  `
 }
 
 const pick = (obj, keys) => (
@@ -184,11 +279,38 @@ const applyFilters = (filters) => (item) => (
   }, true)
 )
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+fastify.register(helmet)
+fastify.register(fstatic, {
+  root: path.join(__dirname, 'public'),
+  prefix: '/public/', // optional: default '/'
+})
+fastify.get('/', async (req, reply) => {
+  const {
+    offset,
+    limit,
+    sort,
+    desc,
+    filters,
+    exclude,
+  } = extractQueryVars(req.query)
+  const filterFn = applyFilters(filters)
+
+  reply.type('text/html')
+  const data = db.data.breaches
+    .filter(filterFn)
+    .sort(DATE_FIELDS.includes(sort) ? sortByDate(sort, desc) : sortBy(sort, desc))
+    .slice(offset, offset + limit)
+    .map(obj => exclude && exclude.length ? omit(obj, exclude) : obj)
+
+  reply.send(indexPage(data, req.query))
+})
 // http://localhost:3000/?limit=10&sort=number_affected&desc&number_affected=gt:5000ANDlt:8000
 // http://localhost:3000/?limit=10&sort=number_affected&desc&reported_date=gt:01/01/2023ANDlt:04/01/2023
 // http://localhost:3000/?limit=20&sort=number_affected&desc&reported_date=gt:01/01/2022&state=eq:DE
 // http://localhost:3000/?limit=20&sort=number_affected&desc&exclude=business_address,business_city,business_state,business_zip
-fastify.get('/', async (req, reply) => {
+fastify.get('/api/', async (req, reply) => {
   const {
     offset,
     limit,
@@ -209,7 +331,8 @@ fastify.get('/', async (req, reply) => {
 // http://localhost:3000/states/WA?limit=10&sort=number_affected&desc&number_affected=gt:5000ANDlt:8000
 // http://localhost:3000/states/DE?limit=20&sort=number_affected&desc&reported_date=gt:01/01/2022
 // http://localhost:3000/states/WA?limit=20&sort=number_affected&desc&exclude=business_address,business_city,business_state,business_zip
-fastify.get('/states/:code', async (req, reply) => {
+// http://localhost:3000/states/DE?limit=20&sort=number_affected&desc&exclude=breach_dates
+fastify.get('/api/states/:code', async (req, reply) => {
   const {
     offset,
     limit,

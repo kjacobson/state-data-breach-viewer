@@ -9,6 +9,8 @@
   "author": "Kyle Jacobson",
   "license": "GPL-3.0-or-later",
   "dependencies": {
+    "@fastify/helmet": "^10.1.0",
+    "@fastify/static": "^6.10.1",
     "fastify": "^4.15.0",
     "lowdb": "^6.0.0"
   }

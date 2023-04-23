@@ -1,0 +1,14 @@
+body {
+  padding: 2em;
+}
+table {
+  border: 1px solid #333;
+  border-collapse: collapse;
+}
+thead th {
+  border: 1px solid #333;
+  font-weight: bold;
+}
+tbody td {
+  border: 1px solid #333; 
+}
