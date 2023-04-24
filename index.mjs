@@ -22,7 +22,8 @@ import {
 import {
   filterRow,
   filtersSection,
-  indexPage
+  indexPage,
+  statePage,
 } from './templates.mjs'
 
 
@@ -76,6 +77,7 @@ fastify.addHook('onRequest', (request, reply, done) => {
   done()
 })
 fastify.get('/', async (req, reply) => {
+  reply.type('text/html')
   const {
     offset,
     limit,
@@ -86,21 +88,20 @@ fastify.get('/', async (req, reply) => {
   } = extractQueryVars(req.query)
   const filterFn = applyFilters(filters)
 
-  reply.type('text/html')
   const data = db.data.breaches
     .filter(filterFn)
     .sort(DATE_FIELDS.includes(sort) ? sortByDate(sort, desc) : sortBy(sort, desc))
     .slice(offset, offset + limit)
     .map(obj => exclude && exclude.length ? omit(obj, exclude) : obj)
 
-  reply.send(indexPage(data, req.query, filters))
+  reply.send(indexPage(data, req, filters))
 })
 // http://localhost:3000/?limit=10&sort=number_affected&desc&number_affected=gt:5000[AND]lt:8000
 // http://localhost:3000/?limit=10&sort=number_affected&desc&reported_date=gt:01/01/2023[AND]lt:04/01/2023
 // http://localhost:3000/?limit=20&sort=number_affected&desc&reported_date=gt:01/01/2022&state=eq:DE
 // http://localhost:3000/?limit=20&sort=number_affected&desc&exclude=business_address,business_city,business_state,business_zip
 // http://localhost:3000/?limit=20&sort=number_affected&exclude=breach_dates&desc=&offset=0&state=eq:WA[OR]eq:DE&entity_name=like:yum
-fastify.get('/api/', async (req, reply) => {
+fastify.get('/api', async (req, reply) => {
   const {
     offset,
     limit,
@@ -122,6 +123,31 @@ fastify.get('/api/', async (req, reply) => {
 // http://localhost:3000/states/DE?limit=20&sort=number_affected&desc&reported_date=gt:01/01/2022
 // http://localhost:3000/states/WA?limit=20&sort=number_affected&desc&exclude=business_address,business_city,business_state,business_zip
 // http://localhost:3000/states/DE?limit=20&sort=number_affected&desc&exclude=breach_dates
+fastify.get('/states/:code', async (req, reply) => {
+  reply.type('text/html')
+  const {
+    offset,
+    limit,
+    sort,
+    desc,
+    filters,
+    exclude,
+  } = extractQueryVars(req.query)
+  const { code: stateCode } = req.params
+
+  const filterFn = applyFilters(filters)
+  const data = db.data.breaches
+    .filter((breach) => (
+      breach.state === stateCode &&
+      filterFn(breach)
+    ))
+    .sort(DATE_FIELDS.includes(sort) ? sortByDate(sort, desc) : sortBy(sort, desc))
+    .slice(offset, offset + limit)
+    .map(obj => pick(obj, COLS_BY_STATE[stateCode]))
+    .map(obj => exclude && exclude.length ? omit(obj, exclude) : obj)
+
+  reply.send(statePage(data, req, filters, stateCode))
+})
 fastify.get('/api/states/:code', async (req, reply) => {
   const {
     offset,

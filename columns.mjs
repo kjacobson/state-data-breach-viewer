@@ -20,6 +20,27 @@ export const COLUMNS = [
   'letter_url',
   'url',
 ]
+export const COLUMN_DISPLAY_NAMES = {
+  state: 'State',
+  entity_name: 'Entity name',
+  dba: 'd.b.a.',
+  business_address: 'Biz address',
+  business_city: 'Biz city',
+  business_state: 'Biz state',
+  business_zip: 'Biz ZIP',
+  start_date: 'Start date',
+  end_date: 'End date',
+  breach_dates: 'Breach dates',
+  reported_date: 'Reported date',
+  number_affected: '# affected',
+  data_accessed: 'Data accessed',
+  notice_methods: 'Notices given',
+  published_date: 'Publish date',
+  breach_type: 'Type of breach',
+  letter_url: 'Notification',
+  url: 'URL',
+}
+
 export const COLS_BY_STATE = {
   CA: ['entity_name', 'breach_dates', 'reported_date'],
   DE: ['entity_name', 'start_date', 'end_date', 'breach_dates', 'reported_date', 'number_affected'],

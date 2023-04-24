@@ -1,7 +1,24 @@
 import {
   AND_COLUMNS,
   COLUMNS,
+  COLUMN_DISPLAY_NAMES,
 } from './columns.mjs'
+
+const STATES = {
+  CA: 'California',
+  DE: 'Delaware',
+  HI: 'Hawaii',
+  IA: 'Iowa',
+  ME: 'Maine',
+  MD: 'Maryland',
+  MT: 'Montana',
+  NH: 'New Hampshire',
+  NJ: 'New Jersey',
+  ND: 'North Dakota',
+  TX: 'Texas',
+  WA: 'Washington',
+}
+
 
 const replaceSort = (query, sort) => {
   const newQuery = Object.assign({}, query)
@@ -33,7 +50,7 @@ const prevPageQuery = (query) => {
   }
   return new URLSearchParams(newQuery).toString()
 }
-export const filterRow = (column, statement, query) => {
+export const filterRow = (column, statement, req) => {
   const ANDorOR = (statement.includes("AND")
     ? "AND"
     : ( statement.includes("OR")
@@ -48,13 +65,13 @@ export const filterRow = (column, statement, query) => {
   }
   return clauses.map((clause) => {
     const [comparison, value] = clause ? clause.split(":") : ['', '']
-    const clearURLBase = new URLSearchParams(query);
+    const clearURLBase = new URLSearchParams(req.query);
     clearURLBase.delete(column)
     return `
       <select name="filter_column">
         <option ${!column ? 'selected' : ''} value="">Select a column</option>
         ${COLUMNS.map(col => (
-          `<option value="${col}" ${col === column ? 'selected' : ''}>${col}</option>`
+          `<option value="${col}" ${col === column ? 'selected' : ''}>${COLUMN_DISPLAY_NAMES[col]}</option>`
         )).join('')}
       </select>
       <select name="filter_comp">
@@ -67,12 +84,13 @@ export const filterRow = (column, statement, query) => {
       </select>
       <input name="filter_value" type="text" value="${value}" placeholder="Enter a value" />
       ${ column !== '' && value === '' ? (
-        `<a href="/?${clearURLBase.toString()}" title="Clear filters for this column">Clear</a>`
+        `<a href="${req.routerPath}?${clearURLBase.toString()}" title="Clear filters for this column">Clear</a>`
       ) : ''}
     `
   }).join(ANDorOR);
 }
-export const filtersSection = (query, appliedFilters) => {
+export const filtersSection = (req, appliedFilters) => {
+  const query = req.query
   return `
     <form method="GET" action="/">
       ${ ['limit', 'offset', 'sort', 'desc'].map(param => (
@@ -81,14 +99,14 @@ export const filtersSection = (query, appliedFilters) => {
           : ''
       )).join('') }
       ${ appliedFilters.map((filter) => (
-        filterRow(filter[0], filter[1], query)
+        filterRow(filter[0], filter[1], req)
       )).join('<br /><hr />') }
       <br /><hr />
-      ${filterRow('', '')}
+      ${filterRow('', '', req)}
       <br />
       <button type="submit">Apply filters</button>
     </form>
-    <form method="GET" action="/">
+    <form method="GET" action="${req.routerPath}">
       ${ ['limit', 'offset', 'sort', 'desc'].map(param => (
         query[param] !== undefined
           ? `<input type="hidden" name="${param}" value="${query[param]}" />`
@@ -98,16 +116,27 @@ export const filtersSection = (query, appliedFilters) => {
     </form>
   `
 }
-export const indexPage = (data, query, filters) => {
-  const hasData = data.length > 0;
-  const keys = data.length ? Object.keys(data[0]) : undefined;
+const tableCell = (key, val) => {
+  if (Array.isArray(val)) {
+    val = val.join(', ')
+  } else
+  if (key === 'letter_url') {
+    return `<a href="${val}">View letter</a>`
+  } else
+  if (key === 'url') {
+    return `<a href="${val}">Details</a>`
+  } else {
+    return val
+  }
+}
+const wrapper = (title, bodyContent) => {
   return `
     <!doctype html>
     <html lang="en">
 
     <head>
       <meta charset="utf-8">
-      <title>Data breach browser</title>
+      <title>Data breach browser - ${title}</title>
       <meta name="description" content="">
       <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -115,23 +144,57 @@ export const indexPage = (data, query, filters) => {
       <link rel="icon" href="/icon.svg" type="image/svg+xml">
       <link rel="apple-touch-icon" href="icon.png">
 
-      <link rel="stylesheet" href="public/normalize.css">
-      <link rel="stylesheet" href="public/index.css">
+      <link rel="stylesheet" href="/public/normalize.css">
+      <link rel="stylesheet" href="/public/index.css">
 
     </head>
 
     <body>
-      <h1>Viewing all states</h1>
-      <nav>
-      ${filtersSection(query, filters)}
+      ${bodyContent}
+    </body>
+
+    </html>
+  `
+}
+const stateMenu = (currentState) => {
+  return `
+    <nav>
+      <ol>
+        <li>
+          ${ !currentState ? '<strong>' : '' }
+          <a href="/">All states</a>
+          ${ !currentState ? '</strong>' : '' }
+        </li>
+        ${` | `}
+        ${Object.entries(STATES).map(([code, displayName]) => (
+          `<li>
+            ${ currentState === code ? '<strong>' : '' }
+            <a href="/states/${code}">${displayName}</a>
+            ${ currentState === code ? '</strong>' : '' }
+          </li>`
+        )).join(" | ") }
+      </ol>
+    </nav>
+  `
+}
+export const indexPage = (data, req, filters) => {
+  const hasData = data.length > 0
+  const keys = data.length ? Object.keys(data[0]) : undefined
+  return wrapper('Home', `
+    <header>
+      <h1>Viewing data for all states</h1>
+      ${stateMenu()}
+    </header>
+    <main>
+      ${filtersSection(req, filters)}
       ${ hasData ? (
         `<table>
           <thead>
             <tr>
               ${keys.map(key => (
                 `<th>
-                  <a href="/?${replaceSort(query, key)}">
-                    ${key}
+                  <a href="/?${replaceSort(req.query, key)}" title="Sort by ${COLUMN_DISPLAY_NAMES[key]}${req.query.desc === 'undefined' ? ' ( descending )' : ''}">
+                    ${COLUMN_DISPLAY_NAMES[key]}
                   </a>
                 </th>`
               )).join('') }
@@ -141,22 +204,68 @@ export const indexPage = (data, query, filters) => {
             ${ data.map(entry => (
               `<tr>
                 ${keys.map(key => (
-                  `<td>${entry[key]}</td>`
+                  `<td>
+                    ${tableCell(key, entry[key])}
+                  </td>`
                 )).join('') }
               </tr>`
             )).join('') }
           </tbody>
           <tfoot>
-            <a href="/?${prevPageQuery(query)}">Previous page</a>
+            <a href="${req.routerPath}?${prevPageQuery(req.query)}">Previous page</a>
             |
-            <a href="/?${nextPageQuery(query)}">Next page</a>
+            <a href="${req.routerPath}?${nextPageQuery(req.query)}">Next page</a>
           </tfoot>
         </table>`
       ) : (
         `<p>No data found that matches your query</p>`
       ) }
-    </body>
-
-    </html>
-  `
+    </main>
+  `)
+}
+export const statePage = (data, req, filters, state) => {
+  const hasData = data.length > 0
+  const keys = data.length ? Object.keys(data[0]) : undefined
+  return wrapper(state, `
+    <header>
+      <h1>Viewing data for ${STATES[state]}</h1>
+      ${stateMenu()}
+    </header>
+    <main>
+      ${filtersSection(req, filters)}
+      ${ hasData ? (
+        `<table>
+          <thead>
+            <tr>
+              ${keys.map(key => (
+                `<th>
+                  <a href="/?${replaceSort(req.query, key)}" title="Sort by ${COLUMN_DISPLAY_NAMES[key]}${req.query.desc === undefined ? ' ( descending )' : ''}">
+                    ${COLUMN_DISPLAY_NAMES[key]}
+                  </a>
+                </th>`
+              )).join('') }
+            </tr>
+          </thead>
+          <tbody>
+            ${ data.map(entry => (
+              `<tr>
+                ${keys.map(key => (
+                  `<td>
+                    ${tableCell(key, entry[key])}
+                  </td>`
+                )).join('') }
+              </tr>`
+            )).join('') }
+          </tbody>
+          <tfoot>
+            <a href="${req.routerPath}?${prevPageQuery(req.query)}">Previous page</a>
+            |
+            <a href="${req.routerPath}?${nextPageQuery(req.query)}">Next page</a>
+          </tfoot>
+        </table>`
+      ) : (
+        `<p>No data found that matches your query</p>`
+      ) }
+    </main>
+  `)
 }
