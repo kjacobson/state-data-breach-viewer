@@ -34,20 +34,33 @@ a[href] {
     font-family: verdana, sans-serif;
     padding: 0 0 2px;
 }
+.table-filter {
+    align-items: end;
+    display: flex;
+    margin-bottom: 1em;
+}
+.table-filter > label {
+    margin: 0 0.5em;
+}
+.table-filter > label:first-child {
+    margin: 0;
+}
+.table-container {
+    border: 1px solid #999;
+    overflow-x: auto;
+    width: 100%;
+}
 table {
-  border-collapse: collapse;
-  display: block;
-  overflow-x: auto;
-  width: 100%;
+    border-collapse: collapse;
 }
 th {
-  border: 1px solid #999;
-  font-weight: bold;
-  padding: 0 0.5em;
+    border: 1px solid #999;
+    font-weight: bold;
+    padding: 0 0.5em;
 }
 td {
-  border: 1px solid #999; 
-  padding: 0 0.5em;
+    border: 1px solid #999; 
+    padding: 0 0.5em;
 }
 main > article,
 main > p {
@@ -57,7 +70,6 @@ main > p {
 label {
     color: #696969;
     display: block;
-    font-weight: bold;
 }
 button {
     background: #4b88c2;
@@ -72,7 +84,6 @@ input[type="url"],
 input[type="text"],
 input[type="email"] {
     font-size: 1em;
-    margin-bottom: 0.25em;
 }
 img {
     border: 4px solid #d8d8d8;
@@ -84,4 +95,9 @@ h1 {
 }
 ol > li {
     margin-bottom: 0.5em;
+}
+
+.pagination {
+    margin-bottom: 0.25em;
+    text-align: right;
 }

@@ -50,6 +50,17 @@ const prevPageQuery = (query) => {
   }
   return new URLSearchParams(newQuery).toString()
 }
+const FILTER_VALUE_WIDTHS = {
+  state: 2,
+  business_state: 2,
+  business_zip: 5,
+  state_date: 10,
+  end_date: 10,
+  reported_date: 10,
+  published_date: 10,
+  entity_name: 20,
+  dba: 20,
+}
 export const filterRow = (column, statement, req) => {
   const ANDorOR = (statement.includes("AND")
     ? "AND"
@@ -63,34 +74,61 @@ export const filterRow = (column, statement, req) => {
   if (column !== '') {
     clauses.push('eq:')
   }
-  return clauses.map((clause) => {
-    const [comparison, value] = clause ? clause.split(":") : ['', '']
-    const clearURLBase = new URLSearchParams(req.query);
-    clearURLBase.delete(column)
-    return `
-      <select name="filter_column">
-        <option ${!column ? 'selected' : ''} value="">Select a column</option>
-        ${COLUMNS.map(col => (
-          `<option value="${col}" ${col === column ? 'selected' : ''}>${COLUMN_DISPLAY_NAMES[col]}</option>`
-        )).join('')}
-      </select>
-      <select name="filter_comp">
-        <option value="eq" ${comparison === 'eq' ? 'selected' : ''}>=</option>
-        <option value="like" ${comparison === 'like' ? 'selected' : ''}>contains</option>
-        <option value="gt" ${comparison === 'gt' ? 'selected' : ''}>&gt;</option>
-        <option value="gte" ${comparison === 'gte' ? 'selected' : ''}>&gt;=</option>
-        <option value="lt" ${comparison === 'lt' ? 'selected' : ''}>&lt;</option>
-        <option value="lte" ${comparison === 'lte' ? 'selected' : ''}>&lt;=</option>
-      </select>
-      <input name="filter_value" type="text" value="${value}" placeholder="Enter a value" size="18" />
-      ${ column !== '' && value === '' ? (
-        `<a href="${req.routerPath}?${clearURLBase.toString()}" title="Clear filters for this column">Clear</a>`
-      ) : ''}
-    `
-  }).join(ANDorOR);
+  return `
+    <div class="table-filter">
+      ${ clauses.map((clause) => {
+        const [comparison, value] = clause ? clause.split(":") : ['', '']
+        const clearURLBase = new URLSearchParams(req.query);
+        clearURLBase.delete(column)
+        return `
+          <label>
+            Column
+            <br />
+            <select name="filter_column">
+              <option ${!column ? 'selected' : ''} value="">---</option>
+              ${COLUMNS.map(col => (
+                `<option value="${col}" ${col === column ? 'selected' : ''}>${COLUMN_DISPLAY_NAMES[col]}</option>`
+              )).join('')}
+            </select>
+          </label>
+          <label>
+            Filter type
+            <br />
+            <select name="filter_comp">
+              <option value="eq" ${comparison === 'eq' ? 'selected' : ''}>=</option>
+              <option value="like" ${comparison === 'like' ? 'selected' : ''}>contains</option>
+              <option value="gt" ${comparison === 'gt' ? 'selected' : ''}>&gt;</option>
+              <option value="gte" ${comparison === 'gte' ? 'selected' : ''}>&gt;=</option>
+              <option value="lt" ${comparison === 'lt' ? 'selected' : ''}>&lt;</option>
+              <option value="lte" ${comparison === 'lte' ? 'selected' : ''}>&lt;=</option>
+            </select>
+          </label>
+          <label>
+            Value
+            <br />
+            <input name="filter_value" type="text" value="${value}" placeholder="${column ? '???' : 'Enter a value'}" size="${FILTER_VALUE_WIDTHS[column] || 18}" />
+          </label>
+          ${ column !== '' && value === '' ? (
+            `<a href="${req.routerPath}?${clearURLBase.toString()}" title="Clear filters for this column">Clear</a>`
+          ) : ''}
+        `
+      }).join(ANDorOR) }
+    </div>
+  `
 }
 export const filtersSection = (req, appliedFilters) => {
   const query = req.query
+  const {
+    limit,
+    offset,
+    sort,
+    desc,
+  } = query
+  const clearQuery = new URLSearchParams()
+  if (limit) { clearQuery.set('limit', limit) }
+  if (offset) { clearQuery.set('offset', offset) }
+  if (sort) { clearQuery.set('sort', sort) }
+  if (desc !== undefined) { clearQuery.set('desc', '') }
   return `
     <form method="GET" action="/">
       ${ ['limit', 'offset', 'sort', 'desc'].map(param => (
@@ -100,22 +138,14 @@ export const filtersSection = (req, appliedFilters) => {
       )).join('') }
       ${ appliedFilters.map((filter) => (
         filterRow(filter[0], filter[1], req)
-      )).join('<br /><hr />') }
-      <br /><hr />
-      ${filterRow('', '', req)}
-      <br />
-      <button type="submit">Apply filters</button>
-    </form>
-    <form method="GET" action="${req.routerPath}">
-      ${ ['limit', 'offset', 'sort', 'desc'].map(param => (
-        query[param] !== undefined
-          ? `<input type="hidden" name="${param}" value="${query[param]}" />`
-          : ''
       )).join('') }
-      <button type="submit">Clear filters</button>
+      ${filterRow('', '', req)}
+      <button type="submit">Apply filters</button>
+      <a href="${req.routerPath}?${clearQuery.toString()}">Clear all filters</a>
     </form>
   `
 }
+
 const tableCell = (key, val) => {
   if (Array.isArray(val)) {
     val = val.join(', ')
@@ -196,30 +226,33 @@ const dataTable = (data, req, filters) => {
     ${ hasData ? (
       `
       ${pagination(req)}
-      <table>
-        <thead>
-          <tr>
-            ${keys.map(key => (
-              `<th>
-                <a href="/?${replaceSort(req.query, key)}" title="Sort by ${COLUMN_DISPLAY_NAMES[key]}${req.query.desc === 'undefined' ? ' ( descending )' : ''}">
-                  ${COLUMN_DISPLAY_NAMES[key]}
-                </a>
-              </th>`
-            )).join('') }
-          </tr>
-        </thead>
-        <tbody>
-          ${ data.map(entry => (
-            `<tr>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
               ${keys.map(key => (
-                `<td>
-                  ${tableCell(key, entry[key])}
-                </td>`
+                `<th>
+                  <a href="/?${replaceSort(req.query, key)}" title="Sort by ${COLUMN_DISPLAY_NAMES[key]}${req.query.desc === 'undefined' ? ' ( descending )' : ''}">
+                    ${COLUMN_DISPLAY_NAMES[key]}
+                  </a>
+                </th>`
               )).join('') }
-            </tr>`
-          )).join('') }
-        </tbody>
-      </table>`
+            </tr>
+          </thead>
+          <tbody>
+            ${ data.map(entry => (
+              `<tr>
+                ${keys.map(key => (
+                  `<td>
+                    ${tableCell(key, entry[key])}
+                  </td>`
+                )).join('') }
+              </tr>`
+            )).join('') }
+          </tbody>
+        </table>
+      </div>
+      `
     ) : (
       `<p>No data found that matches your query</p>`
     ) }
