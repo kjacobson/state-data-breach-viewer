@@ -82,7 +82,7 @@ export const filterRow = (column, statement, req) => {
         <option value="lt" ${comparison === 'lt' ? 'selected' : ''}>&lt;</option>
         <option value="lte" ${comparison === 'lte' ? 'selected' : ''}>&lt;=</option>
       </select>
-      <input name="filter_value" type="text" value="${value}" placeholder="Enter a value" />
+      <input name="filter_value" type="text" value="${value}" placeholder="Enter a value" size="18" />
       ${ column !== '' && value === '' ? (
         `<a href="${req.routerPath}?${clearURLBase.toString()}" title="Clear filters for this column">Clear</a>`
       ) : ''}
@@ -119,7 +119,7 @@ export const filtersSection = (req, appliedFilters) => {
 const tableCell = (key, val) => {
   if (Array.isArray(val)) {
     val = val.join(', ')
-  } else
+  }
   if (key === 'letter_url') {
     return `<a href="${val}">View letter</a>`
   } else
@@ -177,95 +177,74 @@ const stateMenu = (currentState) => {
     </nav>
   `
 }
-export const indexPage = (data, req, filters) => {
-  const hasData = data.length > 0
+
+const pagination = (req) => {
+  return `
+    <div class="pagination">
+      <a href="${req.routerPath}?${prevPageQuery(req.query)}">Previous page</a>
+      |
+      <a href="${req.routerPath}?${nextPageQuery(req.query)}">Next page</a>
+    </div>
+  `
+}
+
+const dataTable = (data, req, filters) => {
   const keys = data.length ? Object.keys(data[0]) : undefined
+  const hasData = data.length > 0
+  return ` 
+    ${filtersSection(req, filters)}
+    ${ hasData ? (
+      `
+      ${pagination(req)}
+      <table>
+        <thead>
+          <tr>
+            ${keys.map(key => (
+              `<th>
+                <a href="/?${replaceSort(req.query, key)}" title="Sort by ${COLUMN_DISPLAY_NAMES[key]}${req.query.desc === 'undefined' ? ' ( descending )' : ''}">
+                  ${COLUMN_DISPLAY_NAMES[key]}
+                </a>
+              </th>`
+            )).join('') }
+          </tr>
+        </thead>
+        <tbody>
+          ${ data.map(entry => (
+            `<tr>
+              ${keys.map(key => (
+                `<td>
+                  ${tableCell(key, entry[key])}
+                </td>`
+              )).join('') }
+            </tr>`
+          )).join('') }
+        </tbody>
+      </table>`
+    ) : (
+      `<p>No data found that matches your query</p>`
+    ) }
+    ${pagination(req)}
+  `
+}
+export const indexPage = (data, req, filters) => {
   return wrapper('Home', `
     <header>
       <h1>Viewing data for all states</h1>
       ${stateMenu()}
     </header>
     <main>
-      ${filtersSection(req, filters)}
-      ${ hasData ? (
-        `<table>
-          <thead>
-            <tr>
-              ${keys.map(key => (
-                `<th>
-                  <a href="/?${replaceSort(req.query, key)}" title="Sort by ${COLUMN_DISPLAY_NAMES[key]}${req.query.desc === 'undefined' ? ' ( descending )' : ''}">
-                    ${COLUMN_DISPLAY_NAMES[key]}
-                  </a>
-                </th>`
-              )).join('') }
-            </tr>
-          </thead>
-          <tbody>
-            ${ data.map(entry => (
-              `<tr>
-                ${keys.map(key => (
-                  `<td>
-                    ${tableCell(key, entry[key])}
-                  </td>`
-                )).join('') }
-              </tr>`
-            )).join('') }
-          </tbody>
-          <tfoot>
-            <a href="${req.routerPath}?${prevPageQuery(req.query)}">Previous page</a>
-            |
-            <a href="${req.routerPath}?${nextPageQuery(req.query)}">Next page</a>
-          </tfoot>
-        </table>`
-      ) : (
-        `<p>No data found that matches your query</p>`
-      ) }
+      ${dataTable(data, req, filters)}
     </main>
   `)
 }
 export const statePage = (data, req, filters, state) => {
-  const hasData = data.length > 0
-  const keys = data.length ? Object.keys(data[0]) : undefined
   return wrapper(state, `
     <header>
       <h1>Viewing data for ${STATES[state]}</h1>
       ${stateMenu()}
     </header>
     <main>
-      ${filtersSection(req, filters)}
-      ${ hasData ? (
-        `<table>
-          <thead>
-            <tr>
-              ${keys.map(key => (
-                `<th>
-                  <a href="/?${replaceSort(req.query, key)}" title="Sort by ${COLUMN_DISPLAY_NAMES[key]}${req.query.desc === undefined ? ' ( descending )' : ''}">
-                    ${COLUMN_DISPLAY_NAMES[key]}
-                  </a>
-                </th>`
-              )).join('') }
-            </tr>
-          </thead>
-          <tbody>
-            ${ data.map(entry => (
-              `<tr>
-                ${keys.map(key => (
-                  `<td>
-                    ${tableCell(key, entry[key])}
-                  </td>`
-                )).join('') }
-              </tr>`
-            )).join('') }
-          </tbody>
-          <tfoot>
-            <a href="${req.routerPath}?${prevPageQuery(req.query)}">Previous page</a>
-            |
-            <a href="${req.routerPath}?${nextPageQuery(req.query)}">Next page</a>
-          </tfoot>
-        </table>`
-      ) : (
-        `<p>No data found that matches your query</p>`
-      ) }
+      ${dataTable(data, req, filters)}
     </main>
   `)
 }
