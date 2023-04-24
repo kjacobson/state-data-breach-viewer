@@ -4,6 +4,8 @@ import Fastify from 'fastify'
 import fstatic from '@fastify/static'
 import helmet from '@fastify/helmet'
 import urlData from '@fastify/url-data'
+import etag from '@fastify/etag'
+import rateLimit from '@fastify/rate-limit'
 import { Low } from 'lowdb'
 import { JSONFile } from 'lowdb/node'
 import {
@@ -36,12 +38,19 @@ await db.read()
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+fastify.register(rateLimit, {
+  max: 100,
+  timeWindow: '1 minute'
+})
 fastify.register(helmet)
 fastify.register(fstatic, {
   root: path.join(__dirname, 'public'),
   prefix: '/public/', // optional: default '/'
 })
 fastify.register(urlData)
+fastify.register(etag, {
+  algorithm: 'fnv1a'
+})
 /**
  * It's hard to build compound queries for multiple fields using a form
  * without an extremely verbose querystirng.
