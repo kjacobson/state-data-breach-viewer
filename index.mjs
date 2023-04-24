@@ -3,6 +3,7 @@ import { fileURLToPath } from 'url';
 import Fastify from 'fastify'
 import fstatic from '@fastify/static'
 import helmet from '@fastify/helmet'
+import urlData from '@fastify/url-data'
 import { Low } from 'lowdb'
 import { JSONFile } from 'lowdb/node'
 import {
@@ -29,7 +30,7 @@ import {
 
 const fastify = Fastify({ logger: true })
 
-const db = new Low(new JSONFile('./4202023213037.json'), {})
+const db = new Low(new JSONFile('./4242023065947.json'), {})
 await db.read()
 
 
@@ -40,6 +41,7 @@ fastify.register(fstatic, {
   root: path.join(__dirname, 'public'),
   prefix: '/public/', // optional: default '/'
 })
+fastify.register(urlData)
 /**
  * It's hard to build compound queries for multiple fields using a form
  * without an extremely verbose querystirng.
@@ -69,7 +71,7 @@ fastify.addHook('onRequest', (request, reply, done) => {
       }
       return acc;
     }, Object.assign({}, rest))
-    const redirectPath = request.routerPath + '?' + new URLSearchParams(newQuery).toString()
+    const redirectPath = request.urlData().path + '?' + new URLSearchParams(newQuery).toString()
     console.log("Redirecting to: " + redirectPath)
     reply.redirect(302, redirectPath)
     done()
@@ -93,6 +95,7 @@ fastify.get('/', async (req, reply) => {
     .sort(DATE_FIELDS.includes(sort) ? sortByDate(sort, desc) : sortBy(sort, desc))
     .slice(offset, offset + limit)
     .map(obj => exclude && exclude.length ? omit(obj, exclude) : obj)
+    .map(obj => omit(obj, ['business_address', 'business_state', 'business_city', 'business_zip']))
 
   reply.send(indexPage(data, req, filters))
 })

@@ -109,7 +109,7 @@ export const filterRow = (column, statement, req) => {
             <input name="filter_value" type="text" value="${value}" placeholder="${column ? '???' : 'Enter a value'}" size="${FILTER_VALUE_WIDTHS[column] || 18}" />
           </label>
           ${ column !== '' && value === '' ? (
-            `<a href="${req.routerPath}?${clearURLBase.toString()}" title="Clear filters for this column">Clear</a>`
+            `<a href="${req.urlData().path}?${clearURLBase.toString()}" title="Clear filters for this column">Clear</a>`
           ) : ''}
         `
       }).join(ANDorOR) }
@@ -131,6 +131,8 @@ export const filtersSection = (req, appliedFilters) => {
   if (desc !== undefined) { clearQuery.set('desc', '') }
   return `
     <form method="GET" action="/">
+      <fieldset>
+        <legend>Filter results</legend>
       ${ ['limit', 'offset', 'sort', 'desc'].map(param => (
         query[param] !== undefined
           ? `<input type="hidden" name="${param}" value="${query[param]}" />`
@@ -141,7 +143,8 @@ export const filtersSection = (req, appliedFilters) => {
       )).join('') }
       ${filterRow('', '', req)}
       <button type="submit">Apply filters</button>
-      <a href="${req.routerPath}?${clearQuery.toString()}">Clear all filters</a>
+      <a href="${req.urlData().path}?${clearQuery.toString()}">Clear all filters</a>
+      </fieldset>
     </form>
   `
 }
@@ -150,10 +153,10 @@ const tableCell = (key, val) => {
   if (Array.isArray(val)) {
     val = val.join(', ')
   }
-  if (key === 'letter_url') {
+  if (key === 'letter_url' && val !== 'N/A') {
     return `<a href="${val}">View letter</a>`
   } else
-  if (key === 'url') {
+  if (key === 'url' && val) {
     return `<a href="${val}">Details</a>`
   } else {
     return val
@@ -211,9 +214,9 @@ const stateMenu = (currentState) => {
 const pagination = (req) => {
   return `
     <div class="pagination">
-      <a href="${req.routerPath}?${prevPageQuery(req.query)}">Previous page</a>
+      <a href="${req.urlData().path}?${prevPageQuery(req.query)}">Previous page</a>
       |
-      <a href="${req.routerPath}?${nextPageQuery(req.query)}">Next page</a>
+      <a href="${req.urlData().path}?${nextPageQuery(req.query)}">Next page</a>
     </div>
   `
 }
@@ -232,7 +235,7 @@ const dataTable = (data, req, filters) => {
             <tr>
               ${keys.map(key => (
                 `<th>
-                  <a href="/?${replaceSort(req.query, key)}" title="Sort by ${COLUMN_DISPLAY_NAMES[key]}${req.query.desc === 'undefined' ? ' ( descending )' : ''}">
+                  <a href="${req.urlData().path}?${replaceSort(req.query, key)}" title="Sort by ${COLUMN_DISPLAY_NAMES[key]}${req.query.desc === 'undefined' ? ' ( descending )' : ''}">
                     ${COLUMN_DISPLAY_NAMES[key]}
                   </a>
                 </th>`
@@ -262,8 +265,8 @@ const dataTable = (data, req, filters) => {
 export const indexPage = (data, req, filters) => {
   return wrapper('Home', `
     <header>
-      <h1>Viewing data for all states</h1>
       ${stateMenu()}
+      <h1>Data breach information for all states</h1>
     </header>
     <main>
       ${dataTable(data, req, filters)}
@@ -274,7 +277,7 @@ export const statePage = (data, req, filters, state) => {
   return wrapper(state, `
     <header>
       <h1>Viewing data for ${STATES[state]}</h1>
-      ${stateMenu()}
+      ${stateMenu(state)}
     </header>
     <main>
       ${dataTable(data, req, filters)}
