@@ -9,7 +9,6 @@ body {
     margin: 0;
     padding: 0 3em 3em;
     text-rendering: optimizeLegibility;
-    width: ca100vw;
 }
 h1, h2, h3, h4 {
     color: #1a1a1a;
@@ -35,8 +34,15 @@ a[href] {
     font-family: verdana, sans-serif;
     padding: 0 0 2px;
 }
+form {
+    margin: 0 0 1em;
+}
 fieldset {
+    background: #f6f6fa;
     border: 1px solid #ddd;
+}
+fieldset > legend {
+    font-weight: bold;
 }
 .table-filter {
     align-items: end;
@@ -50,7 +56,7 @@ fieldset {
     margin: 0;
 }
 .table-container {
-    border: 1px solid #999;
+    border: 1px solid #99999b;
     overflow-x: auto;
     width: 100%;
 }
@@ -60,12 +66,14 @@ table {
     table-layout: fixed;
 }
 th {
-    border: 1px solid #999;
+    background: #f6f6fa;
+    border: 1px solid #99999b;
     font-weight: bold;
     padding: 0 0.5em;
+    text-align: left;
 }
 td {
-    border: 1px solid #999; 
+    border: 1px solid #99999b; 
     padding: 0 0.5em;
 }
 main > article,

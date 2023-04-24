@@ -276,8 +276,8 @@ export const indexPage = (data, req, filters) => {
 export const statePage = (data, req, filters, state) => {
   return wrapper(state, `
     <header>
-      <h1>Viewing data for ${STATES[state]}</h1>
       ${stateMenu(state)}
+      <h1>Viewing data for ${STATES[state]}</h1>
     </header>
     <main>
       ${dataTable(data, req, filters)}

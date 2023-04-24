@@ -30,7 +30,7 @@ import {
 
 const fastify = Fastify({ logger: true })
 
-const db = new Low(new JSONFile('./4242023065947.json'), {})
+const db = new Low(new JSONFile('./4242023090315.json'), {})
 await db.read()
 
 

@@ -126,7 +126,7 @@ export const extractQueryVars = (query) => {
   } = query
   limit = parseInt(limit, 10)
   if (isNaN(limit)) {
-    limit = 10
+    limit = 20
   }
   offset = parseInt(offset, 10)
   if (isNaN(offset)) {
