@@ -6,8 +6,8 @@ import helmet from '@fastify/helmet'
 import urlData from '@fastify/url-data'
 import etag from '@fastify/etag'
 import rateLimit from '@fastify/rate-limit'
-import { Low } from 'lowdb'
-import { JSONFile } from 'lowdb/node'
+import { Low, Memory } from 'lowdb'
+import { S3Client, ListObjectsV2Command, GetObjectCommand } from "@aws-sdk/client-s3"
 import {
   DATE_FIELDS,
   AND_COLUMNS,
@@ -29,12 +29,43 @@ import {
   statePage,
 } from './templates.mjs'
 
+let db
+if (process.env.NODE_ENV === 'production') {
+  const client = new S3Client({ region: 'us-east-1' })
+  let listDBCommand = new ListObjectsV2Command({
+    Bucket: "ksj-lambda-zips",
+    Delimiter: "",
+    EncodingType: "url",
+    MaxKeys: 100,
+    Prefix: "database/",
+  })
+  console.log("Getting db files from S3")
+  const allDBFiles = await client.send(listDBCommand)
+  const dbFilesSorted = allDBFiles.Contents.sort(sortBy("LastModified")).reverse()
+  let openDBCommand = new GetObjectCommand({
+    Bucket: "ksj-lambda-zips",
+    Key: dbFilesSorted[0].Key,
+  })
+  console.log("Getting latest db file")
+  const dbFile = await client.send(openDBCommand)
+  console.log("Reading latest db file into memory")
+  const dbFileStream = dbFile.Body
+  let dbData = ""
+  for await (const chunk of dbFileStream) {
+    dbData += chunk.toString('utf-8')
+  }
+  dbData = JSON.parse(dbData)
 
-const fastify = Fastify({ logger: true })
-
-const db = new Low(new JSONFile('./4242023090315.json'), {})
+  console.log("Initializing memory DB")
+  db = new Low(new Memory(), dbData)
+} else {
+  const { JSONFile } = await import('lowdb/node')
+  db = new Low(new JSONFile('./20230424190949.json'), {})
+}
 await db.read()
 
+console.log("Starting fastify")
+const fastify = Fastify({ logger: true })
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -86,6 +117,9 @@ fastify.addHook('onRequest', (request, reply, done) => {
     done()
   }
   done()
+})
+fastify.get('/archive', async (req, reply) => {
+  return dbFilesSorted
 })
 fastify.get('/', async (req, reply) => {
   reply.type('text/html')
@@ -183,9 +217,42 @@ fastify.get('/api/states/:code', async (req, reply) => {
     .map(obj => exclude && exclude.length ? omit(obj, exclude) : obj)
 })
 
+const teardown = () => {
+  return new Promise((resolve, reject) => {
+    fastify.log.info('Tearing down server')
+    fastify.close().then(() => {
+      fastify.log.info('Successfully closed server connection')
+      process.exit(0)
+    }, (err) => {
+      fastify.log.error('Error closing server connection')
+      process.exit(1)
+    })
+  })
+}
 const start = async () => {
   try {
     await fastify.listen({ port: 3000 })
+    process.send('ready')
+    process.on('SIGINT', async () => {
+      /**
+       * We might see this signal in prod if pm2 restarts a process
+       * due to high memory usage, but we'll rely on other monitoring
+       * for this.
+       *
+       * If a process fails we won't see this.
+       */
+      fastify.log.info('SIGINT')
+      await teardown()
+    })
+    process.on('SIGTERM', async () => {
+      fastify.log.info('SIGTERM')
+      await teardown()
+    })
+    process.on('message', async (msg) => {
+      if (msg == 'shutdown') {
+        await teardown()
+      }
+    })
   } catch (err) {
     fastify.log.error(err)
     process.exit(1)
