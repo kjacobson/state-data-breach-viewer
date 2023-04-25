@@ -1,0 +1,22 @@
+branch-defaults:
+  main:
+    environment: breach-viewer-env
+    group_suffix: null
+environment-defaults:
+  breach-viewer-env:
+    branch: main
+    repository: breach-viewer
+global:
+  application_name: breach-viewer
+  branch: main
+  default_ec2_keyname: breachviewer
+  default_platform: Node.js 18 running on 64bit Amazon Linux 2
+  default_region: us-east-1
+  include_git_submodules: true
+  instance_profile: null
+  platform_name: null
+  platform_version: null
+  profile: null
+  repository: breach-viewer
+  sc: git
+  workspace_type: Application
