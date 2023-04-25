@@ -9,6 +9,7 @@ body {
     margin: 0;
     padding: 0 3em 3em;
     text-rendering: optimizeLegibility;
+    width: 100vw;
 }
 h1, h2, h3, h4 {
     color: #1a1a1a;
@@ -46,6 +47,7 @@ fieldset > legend {
 .table-filter {
     align-items: end;
     display: flex;
+    flex-wrap: wrap;
     margin-bottom: 1em;
 }
 .table-filter > label {
