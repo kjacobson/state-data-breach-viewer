@@ -4,8 +4,8 @@ branch-defaults:
     group_suffix: null
 environment-defaults:
   breach-viewer-env:
-    branch: main
-    repository: breach-viewer
+    branch: null
+    repository: null
 global:
   application_name: breach-viewer
   branch: main
