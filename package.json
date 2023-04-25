@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "./node_modules/pm2/bin/pm2-runtime index.mjs --await-ready  --listen-timeout 30000 --shutdown-with-message -i max",
-    "poststart":  "node ./node_modules/pm2/bin/pm2 logs"
+    "poststart": "node ./node_modules/pm2/bin/pm2 logs",
+    "deploy": "aws s3 cp --recursive public/ s3://ksj-lambda-zips/public --include '*' --exclude '*.swp' && eb deploy"
   },
   "author": "Kyle Jacobson",
   "license": "GPL-3.0-or-later",
