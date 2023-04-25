@@ -1,0 +1,12 @@
+{
+  "normalize_css": {
+    "name": "normalize",
+    "ext": "css",
+    "hash": "112272e51c80ffe5bd01becd2ce7d656"
+  },
+  "index_css": {
+    "name": "index",
+    "ext": "css",
+    "hash": "ba9230806385518ebb2a1b68efec6910"
+  }
+}

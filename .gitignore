@@ -1,6 +1,7 @@
 *.swp
 .DS_Store
 node_modules/
+public/*!*
 
 # Elastic Beanstalk Files
 # .elasticbeanstalk/*

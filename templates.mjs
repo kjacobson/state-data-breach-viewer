@@ -1,8 +1,15 @@
+import STATIC_FILES from './static-files.json' assert { type: "json" }
 import {
   AND_COLUMNS,
   COLUMNS,
   COLUMN_DISPLAY_NAMES,
 } from './columns.mjs'
+
+const staticFileName = (key) => {
+  const isProd = process.env.NODE_ENV === "production"
+  const { name, hash, ext } = STATIC_FILES[key]
+  return `${name}${isProd ? '!' + hash : ''}.${ext}`
+}
 
 const STATES = {
   CA: 'California',
@@ -166,26 +173,22 @@ const wrapper = (title, bodyContent) => {
   return `
     <!doctype html>
     <html lang="en">
+      <head>
+        <meta charset="utf-8">
+        <title>Data breach browser - ${title}</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <head>
-      <meta charset="utf-8">
-      <title>Data breach browser - ${title}</title>
-      <meta name="description" content="">
-      <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="icon" href="/favicon.ico" sizes="any">
+        <link rel="icon" href="/icon.svg" type="image/svg+xml">
+        <link rel="apple-touch-icon" href="icon.png">
 
-      <link rel="icon" href="/favicon.ico" sizes="any">
-      <link rel="icon" href="/icon.svg" type="image/svg+xml">
-      <link rel="apple-touch-icon" href="icon.png">
-
-      <link rel="stylesheet" href="/public/normalize.css">
-      <link rel="stylesheet" href="/public/index.css">
-
-    </head>
-
-    <body>
-      ${bodyContent}
-    </body>
-
+        <link rel="stylesheet" href="/public/${staticFileName('normalize_css')}">
+        <link rel="stylesheet" href="/public/${staticFileName('index_css')}">
+      </head>
+      <body>
+        ${bodyContent}
+      </body>
     </html>
   `
 }
