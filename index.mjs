@@ -74,10 +74,12 @@ fastify.register(rateLimit, {
   timeWindow: '1 minute'
 })
 fastify.register(helmet)
-fastify.register(fstatic, {
-  root: path.join(__dirname, 'public'),
-  prefix: '/public/', // optional: default '/'
-})
+if (process.env.NODE_ENV !== 'production') {
+  fastify.register(fstatic, {
+    root: path.join(__dirname, 'public'),
+    prefix: '/public/', // optional: default '/'
+  })
+}
 fastify.register(urlData)
 fastify.register(etag, {
   algorithm: 'fnv1a'
@@ -231,7 +233,7 @@ const teardown = () => {
 }
 const start = async () => {
   try {
-    await fastify.listen({ port: 3000 })
+    await fastify.listen({ port: process.env.PORT || 3000 })
     process.send('ready')
     process.on('SIGINT', async () => {
       /**
