@@ -2,6 +2,7 @@ import STATIC_FILES from './static-files.json' assert { type: "json" }
 import {
   AND_COLUMNS,
   COLUMNS,
+  COLS_BY_STATE,
   COLUMN_DISPLAY_NAMES,
 } from './columns.mjs'
 
@@ -82,6 +83,7 @@ export const filterRow = (column, statement, req) => {
   if (column !== '') {
     clauses.push('eq:')
   }
+  const cols = req.params.code ? COLS_BY_STATE[req.params.code] : COLUMNS
   return `
     <div class="table-filter">
       ${ clauses.map((clause) => {
@@ -94,7 +96,7 @@ export const filterRow = (column, statement, req) => {
             <br />
             <select name="filter_column">
               <option ${!column ? 'selected' : ''} value="">---</option>
-              ${COLUMNS.map(col => (
+              ${cols.map(col => (
                 `<option value="${col}" ${col === column ? 'selected' : ''}>${COLUMN_DISPLAY_NAMES[col]}</option>`
               )).join('')}
             </select>
@@ -138,7 +140,7 @@ export const filtersSection = (req, appliedFilters) => {
   if (sort) { clearQuery.set('sort', sort) }
   if (desc !== undefined) { clearQuery.set('desc', '') }
   return `
-    <form method="GET" action="/">
+    <form method="GET" action="${req.urlData().path}">
       <fieldset>
         <legend>Filter results</legend>
       ${ ['limit', 'offset', 'sort', 'desc'].map(param => (
