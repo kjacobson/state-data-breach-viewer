@@ -43,6 +43,9 @@ const addPaginationData = (req, offset, limit) => (arr) => {
     req.hasPrev = true
   }
 }
+const addPaginationResponseHeaders = (resp, offset, limit) => (arr) => {
+  resp.header('Content-Range', `entries ${offset + 1}-${offset + limit}/${arr.length}`)
+}
 
 let db
 if (process.env.NODE_ENV === 'production') {
@@ -165,7 +168,7 @@ fastify.get('/', async (req, reply) => {
 // http://localhost:3000/?limit=20&sort=number_affected&desc&reported_date=gt:01/01/2022&state=eq:DE
 // http://localhost:3000/?limit=20&sort=number_affected&desc&exclude=business_address,business_city,business_state,business_zip
 // http://localhost:3000/?limit=20&sort=number_affected&exclude=breach_dates&desc=&offset=0&state=eq:WA[OR]eq:DE&entity_name=like:yum
-fastify.get('/api', async (req, reply) => {
+fastify.get('/api/', async (req, reply) => {
   const {
     offset,
     limit,
@@ -177,6 +180,7 @@ fastify.get('/api', async (req, reply) => {
   const filterFn = applyFilters(filters)
   return db.data.breaches
     .filter(filterFn)
+    .do(addPaginationResponseHeaders(reply, offset, limit))
     .sort(DATE_FIELDS.includes(sort) ? sortByDate(sort, desc) : sortBy(sort, desc))
     .slice(offset, offset + limit)
     .map(obj => exclude && exclude.length ? omit(obj, exclude) : obj)
@@ -230,6 +234,7 @@ fastify.get('/api/states/:code', async (req, reply) => {
       breach.state === stateCode &&
       filterFn(breach)
     ))
+    .do(addPaginationResponseHeaders(reply, offset, limit))
     .sort(DATE_FIELDS.includes(sort) ? sortByDate(sort, desc) : sortBy(sort, desc))
     .slice(offset, offset + limit)
     .map(obj => pick(obj, COLS_BY_STATE[stateCode]))
