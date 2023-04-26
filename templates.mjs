@@ -25,6 +25,7 @@ const STATES = {
   NH: 'New Hampshire',
   NJ: 'New Jersey',
   ND: 'North Dakota',
+  OR: 'Oregon',
   TX: 'Texas',
   WA: 'Washington',
 }
@@ -137,24 +138,25 @@ export const filtersSection = (req, appliedFilters) => {
   } = query
   const clearQuery = new URLSearchParams()
   if (limit) { clearQuery.set('limit', limit) }
-  if (offset) { clearQuery.set('offset', offset) }
+  if (offset) { clearQuery.set('offset', 0) }
   if (sort) { clearQuery.set('sort', sort) }
   if (desc !== undefined) { clearQuery.set('desc', '') }
   return `
     <form method="GET" action="${req.urlData().path}">
       <fieldset>
         <legend>Filter results</legend>
-      ${ ['limit', 'offset', 'sort', 'desc'].map(param => (
-        query[param] !== undefined
-          ? `<input type="hidden" name="${param}" value="${query[param]}" />`
-          : ''
-      )).join('') }
-      ${ appliedFilters.map((filter) => (
-        filterRow(filter[0], filter[1], req)
-      )).join('') }
-      ${filterRow('', '', req)}
-      <button type="submit">Apply filters</button>
-      <a href="${req.urlData().path}?${clearQuery.toString()}">Clear all filters</a>
+        <input type="hidden" name="offset" value="0" />
+        ${ ['limit', 'sort', 'desc'].map(param => (
+          query[param] !== undefined
+            ? `<input type="hidden" name="${param}" value="${query[param]}" />`
+            : ''
+        )).join('') }
+        ${ appliedFilters.map((filter) => (
+          filterRow(filter[0], filter[1], req)
+        )).join('') }
+        ${filterRow('', '', req)}
+        <button type="submit">Apply filters</button>
+        <a href="${req.urlData().path}?${clearQuery.toString()}">Clear all filters</a>
       </fieldset>
     </form>
   `

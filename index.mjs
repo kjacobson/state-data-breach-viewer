@@ -60,7 +60,7 @@ if (process.env.NODE_ENV === 'production') {
   db = new Low(new Memory(), dbData)
 } else {
   const { JSONFile } = await import('lowdb/node')
-  db = new Low(new JSONFile('./20230424190949.json'), {})
+  db = new Low(new JSONFile('./20230426054740.json'), {})
 }
 await db.read()
 
