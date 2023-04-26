@@ -5,11 +5,12 @@ import {
   COLUMN_DISPLAY_NAMES,
 } from './columns.mjs'
 
+const isProd = process.env.NODE_ENV === "production"
 const staticFileName = (key) => {
-  const isProd = process.env.NODE_ENV === "production"
   const { name, hash, ext } = STATIC_FILES[key]
   return `${name}${isProd ? '!' + hash : ''}.${ext}`
 }
+const staticHost = isProd ? 'https://breach-assets.topwords.me' : ''
 
 const STATES = {
   CA: 'California',
@@ -183,8 +184,8 @@ const wrapper = (title, bodyContent) => {
         <link rel="icon" href="/icon.svg" type="image/svg+xml">
         <link rel="apple-touch-icon" href="icon.png">
 
-        <link rel="stylesheet" href="/public/${staticFileName('normalize_css')}">
-        <link rel="stylesheet" href="/public/${staticFileName('index_css')}">
+        <link rel="stylesheet" href="${staticHost}/public/${staticFileName('normalize_css')}">
+        <link rel="stylesheet" href="${staticHost}/public/${staticFileName('index_css')}">
       </head>
       <body>
         ${bodyContent}
