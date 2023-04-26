@@ -108,5 +108,11 @@ h1 {
 }
 .pagination {
     margin: 0.25em;
-    text-align: right;
+    overflow: hidden;
+}
+.pagination-range {
+    float: left;
+}
+.pagination-links {
+    float: right;
 }

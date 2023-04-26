@@ -181,7 +181,7 @@ const wrapper = (title, bodyContent) => {
     <html lang="en">
       <head>
         <meta charset="utf-8">
-        <title>Data breach browser - ${title}</title>
+        <title>State data breach browser - ${title}</title>
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -221,11 +221,16 @@ const stateMenu = (currentState) => {
 }
 
 const pagination = (req) => {
+  const hasMore = !!req.hasMore
+  const hasPrev = !!req.hasPrev
   return `
     <div class="pagination">
-      <a href="${req.urlData().path}?${prevPageQuery(req.query)}">Previous page</a>
-      |
-      <a href="${req.urlData().path}?${nextPageQuery(req.query)}">Next page</a>
+      <span class="pagination-range">Showing ${req.range}</span>
+      <span class="pagination-links">
+        ${hasPrev ? `<a href="${req.urlData().path}?${prevPageQuery(req.query)}">Previous page</a>` : ""}
+        ${hasMore && hasPrev ? " | " : ""}
+        ${hasMore ? `<a href="${req.urlData().path}?${nextPageQuery(req.query)}">Next page</a>` : "" }
+      </span>
     </div>
   `
 }

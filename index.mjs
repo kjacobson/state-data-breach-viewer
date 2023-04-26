@@ -29,6 +29,21 @@ import {
   statePage,
 } from './templates.mjs'
 
+Array.prototype.do = function(fn) {
+  fn(this)
+  return this
+}
+
+const addPaginationData = (req, offset, limit) => (arr) => {
+  req.range = `entries ${offset + 1}-${offset + limit} of ${arr.length}`
+  if (arr.length > offset + limit) {
+    req.hasMore = true
+  }
+  if (offset > 0) {
+    req.hasPrev = true
+  }
+}
+
 let db
 if (process.env.NODE_ENV === 'production') {
   const client = new S3Client({ region: 'us-east-1' })
@@ -137,6 +152,7 @@ fastify.get('/', async (req, reply) => {
 
   const data = db.data.breaches
     .filter(filterFn)
+    .do(addPaginationData(req, offset, limit))
     .sort(DATE_FIELDS.includes(sort) ? sortByDate(sort, desc) : sortBy(sort, desc))
     .slice(offset, offset + limit)
     .map(obj => exclude && exclude.length ? omit(obj, exclude) : obj)
@@ -189,6 +205,7 @@ fastify.get('/states/:code', async (req, reply) => {
       breach.state === stateCode &&
       filterFn(breach)
     ))
+    .do(addPaginationData(req, offset, limit))
     .sort(DATE_FIELDS.includes(sort) ? sortByDate(sort, desc) : sortBy(sort, desc))
     .slice(offset, offset + limit)
     .map(obj => pick(obj, COLS_BY_STATE[stateCode]))
@@ -222,7 +239,7 @@ fastify.get('/api/states/:code', async (req, reply) => {
 const teardown = () => {
   return new Promise((resolve, reject) => {
     fastify.log.info('Tearing down server')
-    fastify.close().then(() => {
+    return fastify.close().then(() => {
       fastify.log.info('Successfully closed server connection')
       process.exit(0)
     }, (err) => {
@@ -234,7 +251,9 @@ const teardown = () => {
 const start = async () => {
   try {
     await fastify.listen({ port: process.env.PORT || 3000 })
-    process.send('ready')
+    if (process.send) {
+      process.send('ready')
+    }
     process.on('SIGINT', async () => {
       /**
        * We might see this signal in prod if pm2 restarts a process
