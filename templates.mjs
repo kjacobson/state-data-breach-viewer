@@ -4,6 +4,7 @@ import {
   COLUMNS,
   COLS_BY_STATE,
   COLUMN_DISPLAY_NAMES,
+  COLUMN_DATA_DEFAULTS,
 } from './columns.mjs'
 
 const isProd = process.env.NODE_ENV === "production"
@@ -169,7 +170,7 @@ const tableCell = (key, val) => {
   if (key === 'url' && val) {
     return `<a href="${val}">Details</a>`
   } else {
-    return val
+    return val || COLUMN_DATA_DEFAULTS[key]
   }
 }
 const wrapper = (title, bodyContent) => {

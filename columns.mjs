@@ -40,7 +40,26 @@ export const COLUMN_DISPLAY_NAMES = {
   letter_url: 'Notification',
   url: 'URL',
 }
-
+export const COLUMN_DATA_DEFAULTS = {
+  state: '??',
+  entity_name: 'Unknown',
+  dba: 'N/A',
+  business_address: 'N/A',
+  business_city: 'N/A',
+  business_state: 'N/A',
+  business_zip: 'N/A',
+  start_date: '-',
+  end_date: '-',
+  breach_dates: '-',
+  reported_date: '-',
+  number_affected: '-',
+  data_accessed: '-',
+  notice_methods: '-',
+  published_date: 'N/A',
+  breach_type: '-',
+  letter_url: 'N/A',
+  url: 'N/A',
+}
 export const COLS_BY_STATE = {
   CA: ['entity_name', 'breach_dates', 'reported_date'],
   DE: ['entity_name', 'start_date', 'end_date', 'breach_dates', 'reported_date', 'number_affected'],
