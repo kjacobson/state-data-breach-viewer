@@ -27,6 +27,7 @@ import {
   filtersSection,
   indexPage,
   statePage,
+  aboutPage,
 } from './templates.mjs'
 
 Array.prototype.do = function(fn) {
@@ -48,6 +49,7 @@ const addPaginationResponseHeaders = (resp, offset, limit) => (arr) => {
 }
 
 let db
+let lastUpdate
 if (process.env.NODE_ENV === 'production') {
   const client = new S3Client({ region: 'us-east-1' })
   let listDBCommand = new ListObjectsV2Command({
@@ -64,6 +66,10 @@ if (process.env.NODE_ENV === 'production') {
     Bucket: "ksj-lambda-zips",
     Key: dbFilesSorted[0].Key,
   })
+  lastUpdate = new Date(dbFilesSort[0].LastModified)
+    .toLocaleString('en-US', { timeZone: 'America/New_York'})
+  console.log("Last update was " + lastUpdate)
+
   console.log("Getting latest db file")
   const dbFile = await client.send(openDBCommand)
   console.log("Reading latest db file into memory")
@@ -78,8 +84,13 @@ if (process.env.NODE_ENV === 'production') {
   db = new Low(new Memory(), dbData)
 } else {
   const { JSONFile } = await import('lowdb/node')
-  db = new Low(new JSONFile('./20230426054740.json'), {})
+  const fileName = "20230426054740.json"
+  db = new Low(new JSONFile(`./${fileName}`), {})
+  lastUpdate = new Date(`${fileName.substring(4,6)}-${fileName.substring(6,8)}-${fileName.substring(0,4)}`)
+    .toLocaleDateString('en-US', { timeZone: 'America/New_York'})
+  console.log("Last update was " + lastUpdate)
 }
+process.env.LAST_UPDATE = lastUpdate
 await db.read()
 
 console.log("Starting fastify")
@@ -138,8 +149,12 @@ fastify.addHook('onRequest', (request, reply, done) => {
   }
   done()
 })
-fastify.get('/archive', async (req, reply) => {
+fastify.get('/api/archive', async (req, reply) => {
   return dbFilesSorted
+})
+fastify.get('/about', async (req, reply) => {
+  reply.type('text/html')
+  reply.send(aboutPage())
 })
 fastify.get('/', async (req, reply) => {
   reply.type('text/html')

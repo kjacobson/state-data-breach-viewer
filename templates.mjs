@@ -15,19 +15,58 @@ const staticFileName = (key) => {
 const staticHost = isProd ? 'https://breach-assets.topwords.me' : ''
 
 const STATES = {
-  CA: 'California',
-  DE: 'Delaware',
-  HI: 'Hawaii',
-  IA: 'Iowa',
-  ME: 'Maine',
-  MD: 'Maryland',
-  MT: 'Montana',
-  NH: 'New Hampshire',
-  NJ: 'New Jersey',
-  ND: 'North Dakota',
-  OR: 'Oregon',
-  TX: 'Texas',
-  WA: 'Washington',
+  CA: {
+    name: 'California',
+    site: 'https://oag.ca.gov/privacy/databreach/list',
+  },
+  DE: {
+    name: 'Delaware',
+    site: 'https://attorneygeneral.delaware.gov/fraud/cpu/securitybreachnotification/database/',
+  },
+  HI: {
+    name: 'Hawaii',
+    site: 'https://cca.hawaii.gov/ocp/notices/security-breach/',
+  },
+  IA: {
+    name: 'Iowa',
+    site: 'https://www.iowaattorneygeneral.gov/for-consumers/security-breach-notifications',
+  },
+  ME: {
+    name: 'Maine',
+    site: 'https://apps.web.maine.gov/online/aeviewer/ME/40/list.shtml',
+  },
+  MD: {
+    name: 'Maryland',
+    site: 'https://www.marylandattorneygeneral.gov/Pages/IdentityTheft/breachnotices.aspx',
+  },
+  MT: {
+    name: 'Montana',
+    site: 'https://dojmt.gov/consumer/databreach/',
+  },
+  NH: {
+    name: 'New Hampshire',
+    site: 'https://www.doj.nh.gov/consumer/security-breaches/',
+  },
+  NJ: {
+    name: 'New Jersey',
+    site: 'https://www.cyber.nj.gov/threat-center/public-data-breaches/',
+  },
+  ND: {
+    name: 'North Dakota',
+    site: 'https://attorneygeneral.nd.gov/consumer-resources/data-breach-notices',
+  },
+  OR: {
+    name: 'Oregon',
+    site: 'https://justice.oregon.gov/consumer/DataBreach/',
+  },
+  TX: {
+    name: 'Texas',
+    site: 'https://oag.my.site.com/datasecuritybreachreport/apex/DataSecurityReportsPage',
+  },
+  WA: {
+    name: 'Washington',
+    site: 'https://www.atg.wa.gov/data-breach-notifications',
+  }
 }
 
 
@@ -194,6 +233,7 @@ const wrapper = (title, bodyContent) => {
       </head>
       <body>
         ${bodyContent}
+        ${footer()}
       </body>
     </html>
   `
@@ -208,10 +248,10 @@ const stateMenu = (currentState) => {
           ${ !currentState ? '</strong>' : '' }
         </li>
         ${` | `}
-        ${Object.entries(STATES).map(([code, displayName]) => (
+        ${Object.entries(STATES).map(([code, { name, site}]) => (
           `<li>
             ${ currentState === code ? '<strong>' : '' }
-            <a href="/states/${code}">${displayName}</a>
+            <a href="/states/${code}">${name}</a>
             ${ currentState === code ? '</strong>' : '' }
           </li>`
         )).join(" | ") }
@@ -232,6 +272,17 @@ const pagination = (req) => {
         ${hasMore ? `<a href="${req.urlData().path}?${nextPageQuery(req.query)}">Next page</a>` : "" }
       </span>
     </div>
+  `
+}
+
+const footer = () => {
+  return `
+    <footer>
+      <p>Data last updated at: ${process.env.LAST_UPDATE} (Eastern Time)</p>
+      <nav>
+        <a href="">About this site</a>
+      </nav>
+    </footer>
   `
 }
 
@@ -291,10 +342,72 @@ export const statePage = (data, req, filters, state) => {
   return wrapper(state, `
     <header>
       ${stateMenu(state)}
-      <h1>Viewing data for ${STATES[state]}</h1>
+      <h1>Viewing data for ${STATES[state].name}</h1>
     </header>
     <main>
       ${dataTable(data, req, filters)}
+    </main>
+  `)
+}
+export const aboutPage = () => {
+  return wrapper('About', `
+    <header>
+      ${stateMenu()}
+      <h1>About this site</h1>
+    </header>
+    <main>
+      <h2>
+        Where does the data come from?
+      </h2>
+      <p>
+        Many states have laws requiring private entities, and sometimes state government entities, to report 
+        data breaches involving residents' identifying information (PII) to state authorities, usually attorneys general.
+        Not all states have such laws and the specifics of such laws&mdash;such as the threshold of affected residents above which
+        a breach must be reported, what constitutes PII, and what information must be reported to authorities&mdash;vary considerably. 
+        Regardless, many state AGs (and other relevant authorities) maintain websites providing information about reported breaches,
+        generally as a required by law. The data on this site is gleaned from those websites, which are, as follows:
+      </p>
+      <ul>
+        ${ Object.entries(STATES).map(([code, { name, site }]) => (
+          `<li>
+            ${name}: <a href="${site}" target="new">${site}</a>
+          </li>`
+        )).join('') }
+      </ul>
+      <h2>
+        How is the data collected?
+      </h2>
+      <p>
+        The data is collected using a technique commonly referred to as web "scraping". I've written code which automatically visits
+        data breach websites with a web browser and parses <em>their</em> underlying HTML code to extract relevant data about each piece.
+        As each site reports different data and formats that data differently, there is a separate script for each state. Some states, such as
+        Indiana, Oklahoma, Vermont, and Wisconsin, have data breach websites but present data in a format that is difficult to parse automatically
+        (actually, Vermont's site just seems to be broken). I have not written code to parse these sites yet, but hope to.
+      </p>
+      <p>
+        I hope to improve the richness of the data I pull out for each site, e.g. distinguishing when the name reported for a business or entity
+        includes a "d.b.a" or parsing PDFs of data breach notifications for information such as the number of state residents whose data was subject
+        to the breach. There is also likely some "dirty" data, either because there are bugs or oversights in my parsing scripts or because
+        there are errors in the data as it appears on the states' sites. For instance, New Hampshire has some mis-typed dates.
+      </p>
+      <h2>
+        What data is collected?
+      </h2>
+      <p>
+        The data made available and the data I'm able to extract automatically differ by state. Below are the pieces of information I'm generally
+        able to extract from each state, but that does not mean I'm able to extract them for each entry in the database. The data varies widely.
+      </p>
+      <ul>
+        ${ Object.entries(STATES).map(([code, _]) => {
+          const colNames = COLS_BY_STATE[code]
+          const colDisplayNames = colNames.map((col) => (
+            COLUMN_DISPLAY_NAMES[col]
+          )).join(', ')
+          return `<li>
+            ${code}: ${colDisplayNames}
+          </li>`
+        }).join('') }
+      </ul>
     </main>
   `)
 }

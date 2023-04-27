@@ -77,10 +77,13 @@ td {
     border: 1px solid #99999b; 
     padding: 0 0.5em;
 }
+main {
+    padding-bottom: 3em;
+}
 main > article,
 main > p {
-    margin: 0 2em 3em;
-    width: 36em;
+    margin: 0 0 1.5em;
+    width: 48em;
 }
 label {
     color: #696969;
@@ -106,6 +109,13 @@ h1 {
     font-weight: normal;
     margin: 0.25em 0 1.5em;
 }
+h2 {
+    border-bottom: 1px dotted;
+    display: inline-block;
+    font-family: Georgia, serif;
+    font-size: 1.35em;
+    font-weight: normal;
+}
 .pagination {
     margin: 0.25em;
     overflow: hidden;
@@ -115,4 +125,26 @@ h1 {
 }
 .pagination-links {
     float: right;
+}
+footer {
+    background: #4b88c2;
+    color: #fff;
+    margin: 0 -3em -4em;
+    overflow: hidden;
+    padding: 0.3em 3em;
+    width: 100%;
+}
+footer > p,
+footer > nav {
+    font-size: 0.8em;
+    margin: 0;
+}
+footer > p {
+    float: left;
+}
+footer > nav {
+    float: right;
+}
+footer a[href] {
+    color: #fff;
 }
