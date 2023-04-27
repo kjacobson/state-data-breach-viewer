@@ -205,7 +205,7 @@ const tableCell = (key, val) => {
   if (Array.isArray(val)) {
     val = val.join(', ')
   }
-  if (key === 'letter_url' && val !== 'N/A') {
+  if (key === 'letter_url' && val !== '') {
     return `<a href="${val}">View letter</a>`
   } else
   if (key === 'url' && val) {
