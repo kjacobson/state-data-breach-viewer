@@ -36,7 +36,8 @@ Array.prototype.do = function(fn) {
 }
 
 const addPaginationData = (req, offset, limit) => (arr) => {
-  req.range = `entries ${offset + 1}-${offset + limit} of ${arr.length}`
+  const max = Math.min(offset + limit, arr.length)
+  req.range = `entries ${offset + 1}-${max} of ${arr.length}`
   if (arr.length > offset + limit) {
     req.hasMore = true
   }
@@ -45,7 +46,8 @@ const addPaginationData = (req, offset, limit) => (arr) => {
   }
 }
 const addPaginationResponseHeaders = (resp, offset, limit) => (arr) => {
-  resp.header('Content-Range', `entries ${offset + 1}-${offset + limit}/${arr.length}`)
+  const max = Math.min(offset + limit, arr.length)
+  resp.header('Content-Range', `entries ${offset + 1}-${max}/${arr.length}`)
 }
 
 let db
