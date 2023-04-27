@@ -66,7 +66,7 @@ if (process.env.NODE_ENV === 'production') {
     Bucket: "ksj-lambda-zips",
     Key: dbFilesSorted[0].Key,
   })
-  lastUpdate = new Date(dbFilesSort[0].LastModified)
+  lastUpdate = new Date(dbFilesSorted[0].LastModified)
     .toLocaleString('en-US', { timeZone: 'America/New_York'})
   console.log("Last update was " + lastUpdate)
 
