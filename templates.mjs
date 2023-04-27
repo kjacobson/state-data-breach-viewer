@@ -238,14 +238,14 @@ const wrapper = (title, bodyContent) => {
     </html>
   `
 }
-const stateMenu = (currentState) => {
+const stateMenu = (currentState, about = false) => {
   return `
     <nav>
       <ol>
         <li>
-          ${ !currentState ? '<strong>' : '' }
+          ${ !currentState && !about ? '<strong>' : '' }
           <a href="/">All states</a>
-          ${ !currentState ? '</strong>' : '' }
+          ${ !currentState && !about ? '</strong>' : '' }
         </li>
         ${` | `}
         ${Object.entries(STATES).map(([code, { name, site}]) => (
@@ -280,7 +280,7 @@ const footer = () => {
     <footer>
       <p>Data last updated at: ${process.env.LAST_UPDATE} (Eastern Time)</p>
       <nav>
-        <a href="">About this site</a>
+        <a href="/about">About this site</a>
       </nav>
     </footer>
   `
@@ -352,10 +352,18 @@ export const statePage = (data, req, filters, state) => {
 export const aboutPage = () => {
   return wrapper('About', `
     <header>
-      ${stateMenu()}
+      ${stateMenu('', true)}
       <h1>About this site</h1>
     </header>
     <main>
+      <h2>
+        Why does this site exist?
+      </h2>
+      <p>
+        There is no standard format for state data breach reporting and it's difficult to compare information on major
+        data breaches across states. I'm hoping this site will help researchers, journalists, and curious people quickly
+        look up data breach information. Instead of routinely visiting a dozen state AG websites, you can just bookmark this one.
+      </p>
       <h2>
         Where does the data come from?
       </h2>
@@ -408,6 +416,73 @@ export const aboutPage = () => {
           </li>`
         }).join('') }
       </ul>
+      <h2>
+        How often is the data updated?
+      </h2>
+      <p>
+        In general, the script to update data will run once a week, on Monday nights. And the site will be refreshed shortly after. More frequent
+        updates are possible.
+      </p>
+      <h2>
+        Can I get this data in an CSV/XSL?
+      </h2>
+      <p>Not yet. Sorry.</p>
+      <h2>
+        API
+      </h2>
+      <p>
+        Good news! There's a JSON API for the data on this site.
+      </p>
+      <h3>
+        Available endpoints:
+      </h3>
+      <ul>
+        <li>
+          <code>/api/</code>: Data for all states, corresponding to the home page.
+        </li>
+        <li>
+          <code>/api/states/:code</code>: Data for a single site, where <code>:code</code> is a two-letter state code. E.g.: <code>/api/states/TX</code>
+        </li>
+      </ul>
+      <h3>
+        Querystring parameters:
+      </h3>
+      <ul>
+        <li>
+          <code>sort</code>: accepts the name of a column, e.g. <code>/api/?sort=number_affected</code>. Options:
+          <code>${COLUMNS.join(', ')}</code>
+        </li>
+        <li>
+          <code>desc</code>: for use with <code>sort</code>. If present, results will be sorted in descending order. E.g.:
+          <code>/api/states/WA?sort=number_affected&desc</code>
+        </li>
+        <li>
+          Filters: a column name (one of <code>${COLUMNS.join(', ')}</code>), an operator (one of <code>eq, like, gt, gte, lt, lte</code>),
+          and a value to filter for. Filters for a column can be combined with <code>[AND]</code> or <code>[OR]</code>. E.g.:
+          <code>/api/?state=eq:WA&reported_date=gte:01/01/2020[AND]lte:12/31/2020</code> will return entries where the state is Washington,
+          and the reported date is between January 1 and December 31, 2020 (inclusive).
+        </li>
+        <li>
+          <code>exclude</code>: columns to exclude from the returned results, separated by columns. One of: <code>${COLUMNS.join(', ')}</code>. E.g.:
+          <code>/api/?exclude=business_zip,dba</code>
+        </li>
+        <li>
+          <code>limit</code>: number of results to display per page, e.g.: <code>/api/states/OR?limit=25&sort=number_affected&desc</code>
+        </li>
+        <li>
+          <code>offset</code>: the result to start with. To be used with limit for pagination. This is zero-based, so the first
+          result is at offset 0 and the twenty-first result is at offset 20. E.g.: 
+          <code>/api/states/OR?limit=25&offset=25&sort=number_affected&desc</code>
+        </li>
+      </ul>
+      <h3>
+        Pagination headers:
+      </h3>
+      <p>
+        Responses will include a <code>Content-Range</code> header with values in the following format: <br />
+        <code>entries 0-20/136</code>, which indicates that you are viewing the first 20 out of a total of 136
+        results for your query. This means that page 2 will start at offset 20, and there will be 7 pages total.
+      </p>
     </main>
   `)
 }

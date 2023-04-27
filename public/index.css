@@ -116,6 +116,16 @@ h2 {
     font-size: 1.35em;
     font-weight: normal;
 }
+h3 {
+    font-size: 1em;
+}
+ul > li {
+    margin-bottom: 0.25em;
+}
+code {
+    background: #e6e6ea;
+    padding: 0 2px;
+}
 .pagination {
     margin: 0.25em;
     overflow: hidden;
