@@ -389,7 +389,8 @@ export const aboutPage = () => {
         Not all states have such laws and the specifics of such laws&mdash;such as the threshold of affected residents above which
         a breach must be reported, what constitutes PII, and what information must be reported to authorities&mdash;vary considerably. 
         Regardless, many state AGs (and other relevant authorities) maintain websites providing information about reported breaches,
-        generally as a required by law. The data on this site is gleaned from those websites, which are, as follows:
+        generally as a required by law. The data on this site is gleaned from those websites, which are, as follows, as well as the HIPAA
+        data breach database:
       </p>
       <ul>
         ${ Object.entries(STATES).map(([code, { name, site }]) => (
@@ -397,6 +398,10 @@ export const aboutPage = () => {
             ${name}: <a href="${site}" target="new">${site}</a>
           </li>`
         )).join('') }
+        <li>
+            All other states: HIPAA database at
+            <a href="https://ocrportal.hhs.gov/ocr/breach/breach_report.jsf" target="new">https://ocrportal.hhs.gov/ocr/breach/breach_report.jsf</a>
+        </li>
       </ul>
       <h2>
         How is the data collected?
