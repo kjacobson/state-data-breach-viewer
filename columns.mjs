@@ -17,6 +17,7 @@ export const COLUMNS = [
   'notice_methods',
   'published_date',
   'breach_type',
+  'data_source', // HIPAA only
   'letter_url',
   'url',
 ]
@@ -37,6 +38,7 @@ export const COLUMN_DISPLAY_NAMES = {
   notice_methods: 'Notices given',
   published_date: 'Publish date',
   breach_type: 'Type of breach',
+  data_source: 'Data source',
   letter_url: 'Notification',
   url: 'URL',
 }
@@ -57,24 +59,26 @@ export const COLUMN_DATA_DEFAULTS = {
   notice_methods: '-',
   published_date: 'N/A',
   breach_type: '-',
+  data_source: '-',
   letter_url: 'N/A',
   url: 'N/A',
 }
 export const COLS_BY_STATE = {
   CA: ['entity_name', 'breach_dates', 'reported_date'],
-  DE: ['entity_name', 'start_date', 'end_date', 'breach_dates', 'reported_date', 'number_affected'],
-  HI: ['entity_name', 'reported_date', 'number_affected', 'breach_type', 'letter_url'],
-  IA: ['entity_name', 'reported_date', 'letter_url'],
-  MD: ['entity_name', 'reported_date', 'number_affected', 'date_types', 'breach_type'],
-  ME: ['entity_name', 'reported_date', 'url'],
-  MT: ['entity_name', 'letter_url', 'start_date', 'end_date', 'reported_date', 'number_affected'],
-  ND: ['entity_name', 'dba', 'letter_url', 'start_date', 'end_date', 'breach_dates', 'reported_date', 'number_affected'],
-  NH: ['entity_name', 'reported_date', 'url'],
-  NJ: ['entity_name', 'reported_date', 'url'],
-  OR: ['entity_name', 'start_date', 'end_date', 'breach_dates', 'reported_date'],
+  DE: ['entity_name', 'start_date', 'end_date', 'breach_dates', 'reported_date', 'number_affected', 'breach_type', 'data_source'],
+  HI: ['entity_name', 'reported_date', 'number_affected', 'breach_type', 'data_source', 'letter_url'],
+  IA: ['entity_name', 'reported_date', 'breach_type', 'data_source', 'letter_url'],
+  MD: ['entity_name', 'reported_date', 'number_affected', 'data_accessed', 'breach_type', 'data_source'],
+  ME: ['entity_name', 'reported_date', 'breach_type', 'data_source', 'url'],
+  MT: ['entity_name', 'letter_url', 'start_date', 'end_date', 'reported_date', 'number_affected', 'breach_type', 'data_source'],
+  ND: ['entity_name', 'dba', 'letter_url', 'start_date', 'end_date', 'breach_dates', 'reported_date', 'number_affected', 'breach_type', 'data_source'],
+  NH: ['entity_name', 'reported_date', 'breach_type', 'data_source', 'url'],
+  NJ: ['entity_name', 'reported_date', 'breach_type', 'data_source', 'url'],
+  OR: ['entity_name', 'start_date', 'end_date', 'breach_dates', 'reported_date', 'breach_type', 'data_source'],
   TX: [
     'entity_name', 'business_address', 'business_city', 'business_state', 'business_zip',
-    'published_date', 'number_affected', 'data_accessed', 'notice_methods'
+    'published_date', 'number_affected', 'data_accessed', 'breach_type', 'data_source', 'notice_methods'
   ],
-  WA: ['entity_name', 'start_date', 'reported_date', 'number_affected', 'data_accessed', 'letter_url']
+  WA: ['entity_name', 'start_date', 'reported_date', 'number_affected', 'data_accessed', 'breach_type', 'data_source', 'letter_url'],
+  HIPAA: ['entity_name', 'state', 'reported_date', 'number_affected', 'breach_type', 'data_source'], 
 }

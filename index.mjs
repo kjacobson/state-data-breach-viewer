@@ -28,6 +28,7 @@ import {
   indexPage,
   statePage,
   aboutPage,
+  hipaaPage,
 } from './templates.mjs'
 
 Array.prototype.do = function(fn) {
@@ -86,7 +87,7 @@ if (process.env.NODE_ENV === 'production') {
   db = new Low(new Memory(), dbData)
 } else {
   const { JSONFile } = await import('lowdb/node')
-  const fileName = "20230426054740.json"
+  const fileName = "20230429233241.json"
   db = new Low(new JSONFile(`./${fileName}`), {})
   lastUpdate = new Date(`${fileName.substring(4,6)}-${fileName.substring(6,8)}-${fileName.substring(0,4)}`)
     .toLocaleDateString('en-US', { timeZone: 'America/New_York'})
@@ -158,6 +159,11 @@ fastify.get('/about', async (req, reply) => {
   reply.type('text/html')
   reply.send(aboutPage())
 })
+// http://localhost:3000/?limit=10&sort=number_affected&desc&number_affected=gt:5000[AND]lt:8000
+// http://localhost:3000/?limit=10&sort=number_affected&desc&reported_date=gt:01/01/2023[AND]lt:04/01/2023
+// http://localhost:3000/?limit=20&sort=number_affected&desc&reported_date=gt:01/01/2022&state=eq:DE
+// http://localhost:3000/?limit=20&sort=number_affected&desc&exclude=business_address,business_city,business_state,business_zip
+// http://localhost:3000/?limit=20&sort=number_affected&exclude=breach_dates&desc=&offset=0&state=eq:WA[OR]eq:DE&entity_name=like:yum
 fastify.get('/', async (req, reply) => {
   reply.type('text/html')
   const {
@@ -180,11 +186,6 @@ fastify.get('/', async (req, reply) => {
 
   reply.send(indexPage(data, req, filters))
 })
-// http://localhost:3000/?limit=10&sort=number_affected&desc&number_affected=gt:5000[AND]lt:8000
-// http://localhost:3000/?limit=10&sort=number_affected&desc&reported_date=gt:01/01/2023[AND]lt:04/01/2023
-// http://localhost:3000/?limit=20&sort=number_affected&desc&reported_date=gt:01/01/2022&state=eq:DE
-// http://localhost:3000/?limit=20&sort=number_affected&desc&exclude=business_address,business_city,business_state,business_zip
-// http://localhost:3000/?limit=20&sort=number_affected&exclude=breach_dates&desc=&offset=0&state=eq:WA[OR]eq:DE&entity_name=like:yum
 fastify.get('/api/', async (req, reply) => {
   const {
     offset,
@@ -200,6 +201,52 @@ fastify.get('/api/', async (req, reply) => {
     .do(addPaginationResponseHeaders(reply, offset, limit))
     .sort(DATE_FIELDS.includes(sort) ? sortByDate(sort, desc) : sortBy(sort, desc))
     .slice(offset, offset + limit)
+    .map(obj => exclude && exclude.length ? omit(obj, exclude) : obj)
+})
+
+fastify.get('/hipaa', async (req, reply) => {
+  reply.type('text/html')
+  const {
+    offset,
+    limit,
+    sort,
+    desc,
+    filters,
+    exclude,
+  } = extractQueryVars(req.query)
+  const filterFn = applyFilters(filters)
+
+  const data = db.data.breaches
+    // data_source is HIPAA-only and is how we identify these sources
+    .filter((entry) => entry.hasOwnProperty('data_source'))
+    .filter(filterFn)
+    .do(addPaginationData(req, offset, limit))
+    .sort(DATE_FIELDS.includes(sort) ? sortByDate(sort, desc) : sortBy(sort, desc))
+    .slice(offset, offset + limit)
+    .map(obj => pick(obj, COLS_BY_STATE.HIPAA))
+    .map(obj => exclude && exclude.length ? omit(obj, exclude) : obj)
+
+  reply.send(hipaaPage(data, req, filters))
+})
+fastify.get('/api/hipaa', async (req, reply) => {
+  const {
+    offset,
+    limit,
+    sort,
+    desc,
+    filters,
+    exclude,
+  } = extractQueryVars(req.query)
+  const filterFn = applyFilters(filters)
+
+  return db.data.breaches
+    // data_source is HIPAA-only and is how we identify these sources
+    .filter((entry) => entry.hasOwnProperty('data_source'))
+    .filter(filterFn)
+    .do(addPaginationResponseHeaders(reply, offset, limit))
+    .sort(DATE_FIELDS.includes(sort) ? sortByDate(sort, desc) : sortBy(sort, desc))
+    .slice(offset, offset + limit)
+    .map(obj => pick(obj, COLS_BY_STATE.HIPAA))
     .map(obj => exclude && exclude.length ? omit(obj, exclude) : obj)
 })
 

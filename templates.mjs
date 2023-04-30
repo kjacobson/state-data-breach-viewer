@@ -244,17 +244,22 @@ const stateMenu = (currentState, about = false) => {
       <ol>
         <li>
           ${ !currentState && !about ? '<strong>' : '' }
-          <a href="/">All states</a>
+          <a href="/" title="View data for all states">All states</a>
           ${ !currentState && !about ? '</strong>' : '' }
         </li>
         ${` | `}
         ${Object.entries(STATES).map(([code, { name, site}]) => (
           `<li>
             ${ currentState === code ? '<strong>' : '' }
-            <a href="/states/${code}">${name}</a>
+            <a href="/states/${code}" title="View data for ${name}">${name}</a>
             ${ currentState === code ? '</strong>' : '' }
           </li>`
         )).join(" | ") }
+        ${` | `}
+        <li>
+          ${ currentState === "HIPAA" ? '<strong>' : '' }
+          <a href="/hipaa">HIPAA</a>
+          ${ currentState === "HIPAA" ? '</strong>' : '' }
       </ol>
     </nav>
   `
@@ -343,6 +348,17 @@ export const statePage = (data, req, filters, state) => {
     <header>
       ${stateMenu(state)}
       <h1>Viewing data for ${STATES[state].name}</h1>
+    </header>
+    <main>
+      ${dataTable(data, req, filters)}
+    </main>
+  `)
+}
+export const hipaaPage = (data, req, filters, state) => {
+  return wrapper(state, `
+    <header>
+      ${stateMenu('HIPAA')}
+      <h1>Data for all states from the HIPAA breach database</h1>
     </header>
     <main>
       ${dataTable(data, req, filters)}
