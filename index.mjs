@@ -182,7 +182,7 @@ fastify.get('/', async (req, reply) => {
     .sort(DATE_FIELDS.includes(sort) ? sortByDate(sort, desc) : sortBy(sort, desc))
     .slice(offset, offset + limit)
     .map(obj => exclude && exclude.length ? omit(obj, exclude) : obj)
-    .map(obj => omit(obj, ['business_address', 'business_state', 'business_city', 'business_zip', 'notice_methods']))
+    .map(obj => omit(obj, ['business_address', 'business_state', 'business_city', 'business_zip', 'notice_methods', 'dba']))
 
   reply.send(indexPage(data, req, filters))
 })
