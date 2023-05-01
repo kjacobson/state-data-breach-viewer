@@ -235,7 +235,7 @@ export const filterRow = (column, statement, req) => {
   if (column !== '') {
     clauses.push('eq:')
   }
-  const cols = req.params.code ? COLS_BY_STATE[req.params.code] || COLS_BY_STATE.HIPAA : COLUMNS
+  const cols = req.params.code ? COLS_BY_STATE[req.params.code] || COLS_BY_STATE.HIPAA.filter(col => col !== 'state') : COLUMNS
   return `
     <div class="table-filter">
       ${ clauses.map((clause) => {
