@@ -76,7 +76,7 @@ const replaceSort = (query, sort) => {
   if (sort !== newQuery.sort) {
     delete newQuery.desc
   } else {
-    if (newQuery.desc !== undefined) {
+    if (newQuery.desc !== undefined || !query.sort) {
       delete newQuery.desc
     } else {
       newQuery.desc = ''
@@ -215,6 +215,8 @@ const tableCell = (key, val) => {
   }
 }
 const wrapper = (title, bodyContent) => {
+  // <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  // <link rel="apple-touch-icon" href="icon.png">
   return `
     <!doctype html>
     <html lang="en">
@@ -224,10 +226,10 @@ const wrapper = (title, bodyContent) => {
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <link rel="icon" href="/favicon.ico" sizes="any">
-        <link rel="icon" href="/icon.svg" type="image/svg+xml">
-        <link rel="apple-touch-icon" href="icon.png">
-
+        <link rel="icon" href="${staticHost}/public/${staticFileName('favicon')}" sizes="any">
+        <link rel="icon" type="image/png" sizes="16x16" href="${staticHost}/public/${staticFileName('favicon')}">
+        <link rel="icon" type="image/png" sizes="32x32" href="${staticHost}/public/${staticFileName('favicon')}">
+        <link rel="apple-touch-icon" sizes="180x180" href="${staticHost}/public/${staticFileName('favicon')}">
         <link rel="stylesheet" href="${staticHost}/public/${staticFileName('normalize_css')}">
         <link rel="stylesheet" href="${staticHost}/public/${staticFileName('index_css')}">
       </head>
@@ -305,8 +307,15 @@ const dataTable = (data, req, filters) => {
             <tr>
               ${keys.map(key => (
                 `<th>
-                  <a href="${req.urlData().path}?${replaceSort(req.query, key)}" title="Sort by ${COLUMN_DISPLAY_NAMES[key]}${req.query.desc === 'undefined' ? ' ( descending )' : ''}">
-                    ${COLUMN_DISPLAY_NAMES[key]}
+                  <a
+                    href="${req.urlData().path}?${replaceSort(req.query, key)}"
+                    title="Sort by ${COLUMN_DISPLAY_NAMES[key]}${req.query.desc === undefined ? ' ( descending )' : ''}"
+                  >
+                    ${COLUMN_DISPLAY_NAMES[key]}&nbsp;${ req.query.sort === key || (!req.query.sort && key === 'reported_date') ? (
+                      req.query.desc === undefined && !(key === 'reported_date' && !req.query.sort)
+                      ? "<span class='sorted-desc'>⬇</span>"
+                      : "<span class='sorted-asc'>⬆</span>"
+                    ) : "<span class='unsorted'>⬍</span>" }
                   </a>
                 </th>`
               )).join('') }

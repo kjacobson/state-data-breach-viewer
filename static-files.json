@@ -7,6 +7,26 @@
   "index_css": {
     "name": "index",
     "ext": "css",
-    "hash": "81b5928917af9557674f418e2b804783"
+    "hash": "e0a5c4bc5cb7bd01928bb1bf6cd1444e"
+  },
+  "favicon": {
+    "name": "favicon",
+    "ext": "ico",
+    "hash": "92a0067f849bea475746484e6f215a72"
+  },
+  "favicon16": {
+    "name": "favicon-16x16",
+    "ext": "png",
+    "hash": "bde67edf0fdb2fcc40ca597e80549cc7"
+  },
+  "favicon32": {
+    "name": "favicon-32x32",
+    "ext": "png",
+    "hash": "0432804c709b99592a6be08710d2b596"
+  },
+  "apple-touch-icon": {
+    "name": "apple-touch-icon",
+    "ext": "png",
+    "hash": "3396912e6489e80af5ad9e8053c8e196"
   }
 }

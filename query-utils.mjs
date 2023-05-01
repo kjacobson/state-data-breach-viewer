@@ -132,8 +132,11 @@ export const extractQueryVars = (query) => {
   if (isNaN(offset)) {
     offset = 0
   }
-  sort = sort || 'reported_date'
   desc = desc !== undefined
+  if (!sort) {
+    sort = 'reported_date'
+    desc = true
+  }
   if (exclude && exclude.length) { 
     exclude = exclude.split(',') 
   }

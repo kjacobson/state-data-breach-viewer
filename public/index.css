@@ -39,7 +39,7 @@ form {
 }
 fieldset {
     background: #f6f6fa;
-    border: 1px solid #ddd;
+    border: 1px solid #ccccce;
 }
 fieldset > legend {
     font-weight: bold;
@@ -57,7 +57,6 @@ fieldset > legend {
     margin: 0;
 }
 .table-container {
-    border: 1px solid #99999b;
     overflow-x: auto;
     width: 100%;
 }
@@ -68,14 +67,27 @@ table {
 }
 th {
     background: #f6f6fa;
-    border: 1px solid #99999b;
+    border: 1px solid #ccccce;
     font-weight: bold;
     padding: 0 0.5em;
     text-align: left;
+    vertical-align: bottom;
+}
+th > a[href] {
+    text-decoration: none;
+}
+th .sorted-asc,
+th .sorted-desc,
+th .unsorted {
+    font-weight: normal;
+}
+th .unsorted {
+    color: #999;
 }
 td {
-    border: 1px solid #99999b; 
-    padding: 0 0.5em;
+    border: 1px solid #ccccce;
+    padding: 0.25em 0.5em;
+    vertical-align: top;
 }
 main {
     padding-bottom: 3em;
