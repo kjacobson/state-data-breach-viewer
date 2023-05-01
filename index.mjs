@@ -6,6 +6,7 @@ import helmet from '@fastify/helmet'
 import urlData from '@fastify/url-data'
 import etag from '@fastify/etag'
 import rateLimit from '@fastify/rate-limit'
+import { json2csv } from 'json-2-csv';
 import { Low, Memory } from 'lowdb'
 import { S3Client, ListObjectsV2Command, GetObjectCommand } from "@aws-sdk/client-s3"
 import {
@@ -186,6 +187,23 @@ fastify.get('/', async (req, reply) => {
 
   reply.send(indexPage(data, req, filters))
 })
+fastify.get('/breach-data.csv', async (req, reply) => {
+  reply.type('text/csv')
+  const {
+    sort,
+    desc,
+    filters,
+    exclude,
+  } = extractQueryVars(req.query)
+  const filterFn = applyFilters(filters)
+
+  const data = db.data.breaches
+    .filter(filterFn)
+    .sort(DATE_FIELDS.includes(sort) ? sortByDate(sort, desc) : sortBy(sort, desc))
+    .map(obj => exclude && exclude.length ? omit(obj, exclude) : obj)
+  const csv = await json2csv(data, { emptyFieldValue: '' })
+  reply.send(csv)
+})
 fastify.get('/api/', async (req, reply) => {
   const {
     offset,
@@ -227,6 +245,27 @@ fastify.get('/hipaa', async (req, reply) => {
     .map(obj => exclude && exclude.length ? omit(obj, exclude) : obj)
 
   reply.send(hipaaPage(data, req, filters))
+})
+fastify.get('/hipaa.csv', async (req, reply) => {
+  reply.type('text/csv')
+  const {
+    sort,
+    desc,
+    filters,
+    exclude,
+  } = extractQueryVars(req.query)
+  const filterFn = applyFilters(filters)
+
+  const data = db.data.breaches
+    // data_source is HIPAA-only and is how we identify these sources
+    .filter((entry) => entry.hasOwnProperty('data_source'))
+    .filter(filterFn)
+    .sort(DATE_FIELDS.includes(sort) ? sortByDate(sort, desc) : sortBy(sort, desc))
+    .map(obj => pick(obj, COLS_BY_STATE.HIPAA))
+    .map(obj => exclude && exclude.length ? omit(obj, exclude) : obj)
+
+  const csv = await json2csv(data, { emptyFieldValue: '' })
+  reply.send(csv)
 })
 fastify.get('/api/hipaa', async (req, reply) => {
   const {
@@ -280,6 +319,29 @@ fastify.get('/states/:code', async (req, reply) => {
     .map(obj => exclude && exclude.length ? omit(obj, exclude) : obj)
 
   reply.send(statePage(data, req, filters, stateCode))
+})
+fastify.get('/states/:code.csv', async (req, reply) => {
+  reply.type('text/csv')
+  const {
+    sort,
+    desc,
+    filters,
+    exclude,
+  } = extractQueryVars(req.query)
+  const { code: stateCode } = req.params
+
+  const filterFn = applyFilters(filters)
+  const data = db.data.breaches
+    .filter((breach) => (
+      breach.state === stateCode &&
+      filterFn(breach)
+    ))
+    .sort(DATE_FIELDS.includes(sort) ? sortByDate(sort, desc) : sortBy(sort, desc))
+    .map(obj => pick(obj, COLS_BY_STATE[stateCode] || COLS_BY_STATE.HIPAA))
+    .map(obj => exclude && exclude.length ? omit(obj, exclude) : obj)
+
+  const csv = await json2csv(data, { emptyFieldValue: '' })
+  reply.send(csv)
 })
 fastify.get('/api/states/:code', async (req, reply) => {
   const {
