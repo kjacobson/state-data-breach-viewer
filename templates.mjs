@@ -446,11 +446,11 @@ const dataTable = (data, req, filters) => {
           </tbody>
         </table>
       </div>
+      ${pagination(req)}
       `
     ) : (
       `<p>No data found that matches your query</p>`
     ) }
-    ${pagination(req)}
   `
 }
 export const indexPage = (data, req, filters) => {
