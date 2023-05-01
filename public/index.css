@@ -71,6 +71,7 @@ th {
     font-weight: bold;
     padding: 0 0.5em;
     text-align: left;
+    vertical-align: bottom;
 }
 th > a[href] {
     text-decoration: none;
