@@ -1,3 +1,6 @@
+html {
+    min-height: 100vh;
+}
 body {
     box-sizing: border-box;
     color: #323232;
@@ -6,25 +9,40 @@ body {
     font-feature-settings: 'kern';
     font-kerning: normal;
     line-height: 1.6667;
-    margin: 0;
+    min-height: 100vh;
     padding: 0 3em 3em;
+    position: relative;
     text-rendering: optimizeLegibility;
     width: 100vw;
 }
 h1, h2, h3, h4 {
     color: #1a1a1a;
 }
-nav {
-    margin: 1em -3em;
-    padding: 0 0.5em;
+header {
+    margin-bottom: 2.5em;
+}
+header > nav {
+    padding: 1em 0;
+}
+header > p {
+    font-size: 0.75em;
+    margin: 1em 0 0;
 }
 nav > ol {
     list-style: none;
     margin: 0;
+    padding: 0;
 }
 nav > ol > li {
     display: inline-block;
     list-style: none;
+}
+nav a[href] {
+    text-decoration: none;
+}
+nav a[href]:hover,
+nav a[href]:focus {
+    text-decoration: underline;
 }
 header > h1 {
     border-bottom: 3px solid #4b88c2;
@@ -119,7 +137,7 @@ h1 {
     font-family: Georgia, serif;
     font-size: 1.7em;
     font-weight: normal;
-    margin: 0.25em 0 1.5em;
+    margin: 0.25em 0 0;
 }
 h2 {
     border-bottom: 1px dotted;
@@ -150,16 +168,19 @@ code {
 }
 footer {
     background: #4b88c2;
+    bottom: 0;
     color: #fff;
-    margin: 0 -3em -4em;
+    left: 0;
     overflow: hidden;
     padding: 0.3em 3em;
-    width: 100%;
+    position: absolute;
+    right: 0;
 }
 footer > p,
 footer > nav {
     font-size: 0.8em;
     margin: 0;
+    padding: 0;
 }
 footer > p {
     float: left;

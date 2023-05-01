@@ -15,21 +15,66 @@ const staticFileName = (key) => {
 const staticHost = isProd ? 'https://breach-assets.topwords.me' : ''
 
 const STATES = {
+  AL: {
+    name: 'Alabama',
+  },
+  AK: {
+    name: 'Alaska',
+  },
+  AZ: {
+    name: 'Arizona',
+  },
+  AR: {
+    name: 'Arkansas',
+  },
   CA: {
     name: 'California',
     site: 'https://oag.ca.gov/privacy/databreach/list',
+  },
+  CO: {
+    name: 'Colorado',
+  },
+  CT: {
+    name: 'Connecticut',
   },
   DE: {
     name: 'Delaware',
     site: 'https://attorneygeneral.delaware.gov/fraud/cpu/securitybreachnotification/database/',
   },
+  DC: {
+    name: 'District of Columbia',
+  },
+  FL: {
+    name: 'Florida',
+  },
+  GA: {
+    name: 'Georgia',
+  },
   HI: {
     name: 'Hawaii',
     site: 'https://cca.hawaii.gov/ocp/notices/security-breach/',
   },
+  ID: {
+    name: 'Idaho',
+  },
+  IL: {
+    name: 'Illinois',
+  },
+  IN: {
+    name: 'Indiana',
+  },
   IA: {
     name: 'Iowa',
     site: 'https://www.iowaattorneygeneral.gov/for-consumers/security-breach-notifications',
+  },
+  KS: {
+    name: 'Kansas',
+  },
+  KY: {
+    name: 'Kentucky',
+  },
+  LA: {
+    name: 'Louisiana',
   },
   ME: {
     name: 'Maine',
@@ -39,9 +84,27 @@ const STATES = {
     name: 'Maryland',
     site: 'https://www.marylandattorneygeneral.gov/Pages/IdentityTheft/breachnotices.aspx',
   },
+  MI: {
+    name: 'Michigan',
+  },
+  MN: {
+    name: 'Minnesota',
+  },
+  MS: {
+    name: 'Mississippi',
+  },
+  MO: {
+    name: 'Missouri',
+  },
   MT: {
     name: 'Montana',
     site: 'https://dojmt.gov/consumer/databreach/',
+  },
+  NE: {
+    name: 'Nebraska',
+  },
+  MV: {
+    name: 'Nevada',
   },
   NH: {
     name: 'New Hampshire',
@@ -51,22 +114,70 @@ const STATES = {
     name: 'New Jersey',
     site: 'https://www.cyber.nj.gov/threat-center/public-data-breaches/',
   },
+  NM: {
+    name: 'New Mexico',
+  },
+  NY: {
+    name: 'New York',
+  },
+  NC: {
+    name: 'North Carolina',
+  },
   ND: {
     name: 'North Dakota',
     site: 'https://attorneygeneral.nd.gov/consumer-resources/data-breach-notices',
+  },
+  OH: {
+    name: 'Ohio',
+  },
+  OK: {
+    name: 'Oklahoma',
   },
   OR: {
     name: 'Oregon',
     site: 'https://justice.oregon.gov/consumer/DataBreach/',
   },
+  PA: {
+    name: 'Pennsylvania',
+  },
+  RI: {
+    name: 'Rhode Island',
+  },
+  SC: {
+    name: 'South Carolina',
+  },
+  SD: {
+    name: 'South Dakota',
+  },
+  TN: {
+    name: 'Tennessee',
+  },
   TX: {
     name: 'Texas',
     site: 'https://oag.my.site.com/datasecuritybreachreport/apex/DataSecurityReportsPage',
   },
+  UT: {
+    name: 'Utah',
+  },
+  VT: {
+    name: 'Vermont',
+  },
+  VA: {
+    name: 'Virginia',
+  },
   WA: {
     name: 'Washington',
     site: 'https://www.atg.wa.gov/data-breach-notifications',
-  }
+  },
+  WV: {
+    name: 'West Virginia',
+  },
+  WI: {
+    name: 'Wisconsin',
+  },
+  WY: {
+    name: 'Wyoming',
+  },
 }
 
 
@@ -124,7 +235,7 @@ export const filterRow = (column, statement, req) => {
   if (column !== '') {
     clauses.push('eq:')
   }
-  const cols = req.params.code ? COLS_BY_STATE[req.params.code] : COLUMNS
+  const cols = req.params.code ? COLS_BY_STATE[req.params.code] || COLS_BY_STATE.HIPAA : COLUMNS
   return `
     <div class="table-filter">
       ${ clauses.map((clause) => {
@@ -249,19 +360,20 @@ const stateMenu = (currentState, about = false) => {
           <a href="/" title="View data for all states">All states</a>
           ${ !currentState && !about ? '</strong>' : '' }
         </li>
-        ${` | `}
-        ${Object.entries(STATES).map(([code, { name, site}]) => (
-          `<li>
-            ${ currentState === code ? '<strong>' : '' }
-            <a href="/states/${code}" title="View data for ${name}">${name}</a>
-            ${ currentState === code ? '</strong>' : '' }
-          </li>`
-        )).join(" | ") }
-        ${` | `}
+        ${` · `}
         <li>
           ${ currentState === "HIPAA" ? '<strong>' : '' }
           <a href="/hipaa">HIPAA</a>
           ${ currentState === "HIPAA" ? '</strong>' : '' }
+        </li>
+        ${` · `}
+        ${Object.entries(STATES).map(([code, { name, site}]) => (
+          `<li>
+            ${ currentState === code ? '<strong>' : '' }
+            <a href="/states/${code}" title="View data for ${name}">${code}</a>
+            ${ currentState === code ? '</strong>' : '' }
+          </li>`
+        )).join(" · ") }
       </ol>
     </nav>
   `
@@ -356,7 +468,8 @@ export const statePage = (data, req, filters, state) => {
   return wrapper(state, `
     <header>
       ${stateMenu(state)}
-      <h1>Viewing data for ${STATES[state].name}</h1>
+      <h1>Viewing data for ${STATES[state].name}${COLS_BY_STATE[state] ? '' : '*'}</h1>
+      ${COLS_BY_STATE[state] ? '' : '<p>* data from HHS (HIPAA) breach database only</p>'}
     </header>
     <main>
       ${dataTable(data, req, filters)}

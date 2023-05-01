@@ -276,7 +276,7 @@ fastify.get('/states/:code', async (req, reply) => {
     .do(addPaginationData(req, offset, limit))
     .sort(DATE_FIELDS.includes(sort) ? sortByDate(sort, desc) : sortBy(sort, desc))
     .slice(offset, offset + limit)
-    .map(obj => pick(obj, COLS_BY_STATE[stateCode]))
+    .map(obj => pick(obj, COLS_BY_STATE[stateCode] || COLS_BY_STATE.HIPAA))
     .map(obj => exclude && exclude.length ? omit(obj, exclude) : obj)
 
   reply.send(statePage(data, req, filters, stateCode))
@@ -301,7 +301,7 @@ fastify.get('/api/states/:code', async (req, reply) => {
     .do(addPaginationResponseHeaders(reply, offset, limit))
     .sort(DATE_FIELDS.includes(sort) ? sortByDate(sort, desc) : sortBy(sort, desc))
     .slice(offset, offset + limit)
-    .map(obj => pick(obj, COLS_BY_STATE[stateCode]))
+    .map(obj => pick(obj, COLS_BY_STATE[stateCode] || COLS_BY_STATE.HIPAA))
     .map(obj => exclude && exclude.length ? omit(obj, exclude) : obj)
 })
 
