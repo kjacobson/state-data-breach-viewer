@@ -33,7 +33,7 @@ export const COLUMN_DISPLAY_NAMES = {
   end_date: 'End date',
   breach_dates: 'Breach dates',
   reported_date: 'Reported date',
-  number_affected: '# affected',
+  number_affected: '#&nbsp;affected',
   data_accessed: 'Data accessed',
   notice_methods: 'Notices given',
   published_date: 'Publish date',
