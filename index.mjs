@@ -255,7 +255,8 @@ fastify.get('/hipaa', async (req, reply) => {
 
   const data = db.data.breaches
     // data_source is HIPAA-only and is how we identify these sources
-    .filter((entry) => entry.hasOwnProperty('data_source'))
+    // TODO: HIPAA boolean
+    .filter((entry) => entry.data_source)
     .filter(filterFn)
     .do(addPaginationData(req, offset, limit))
     .sort(DATE_FIELDS.includes(sort) ? sortByDate(sort, desc) : sortBy(sort, desc))
@@ -277,7 +278,7 @@ fastify.get('/hipaa.csv', async (req, reply) => {
 
   const data = db.data.breaches
     // data_source is HIPAA-only and is how we identify these sources
-    .filter((entry) => entry.hasOwnProperty('data_source'))
+    .filter((entry) => entry.data_source)
     .filter(filterFn)
     .sort(DATE_FIELDS.includes(sort) ? sortByDate(sort, desc) : sortBy(sort, desc))
     .map(obj => pick(obj, COLS_BY_STATE.HIPAA))
@@ -299,7 +300,7 @@ fastify.get('/api/hipaa', async (req, reply) => {
 
   return db.data.breaches
     // data_source is HIPAA-only and is how we identify these sources
-    .filter((entry) => entry.hasOwnProperty('data_source'))
+    .filter((entry) => entry.data_source)
     .filter(filterFn)
     .do(addPaginationResponseHeaders(reply, offset, limit))
     .sort(DATE_FIELDS.includes(sort) ? sortByDate(sort, desc) : sortBy(sort, desc))
