@@ -104,7 +104,15 @@ fastify.register(rateLimit, {
   max: 100,
   timeWindow: '1 minute'
 })
-fastify.register(helmet)
+fastify.register(helmet, {
+  contentSecurityPolicy: {
+    directives: {
+      "img-src": ["'self'", "*.topwords.me"],
+      "style-src": ["'self'", "*.topwords.me"],
+      "script-src": ["'self'", "*.topwords.me"],
+    },
+  }
+})
 if (process.env.NODE_ENV !== 'production') {
   fastify.register(fstatic, {
     root: path.join(__dirname, 'public'),
