@@ -6,7 +6,7 @@
   "scripts": {
     "start": "./node_modules/pm2/bin/pm2-runtime index.mjs --await-ready  --listen-timeout 30000 --shutdown-with-message -i max",
     "poststart": "node ./node_modules/pm2/bin/pm2 logs",
-    "copy-static-files": "aws s3 cp --recursive public/ s3://ksj-lambda-zips/public --include '*!*' --exclude '*.swp'",
+    "copy-static-files": "aws s3 cp --recursive public/ s3://ksj-lambda-zips/public --include '*!*' --exclude '*.swp' --cache-control 'public, max-age=31536000'",
     "cache-bust": "node cache-buster.mjs",
     "deploy": "npm run cache-bust && npm run copy-static-files && eb deploy"
   },
