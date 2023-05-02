@@ -222,7 +222,7 @@ const FILTER_VALUE_WIDTHS = {
   entity_name: 20,
   dba: 20,
 }
-export const filterRow = (column, statement, req) => {
+const filterRow = (column, statement, req) => {
   const ANDorOR = (statement.includes("AND")
     ? "AND"
     : ( statement.includes("OR")
@@ -278,7 +278,7 @@ export const filterRow = (column, statement, req) => {
     </div>
   `
 }
-export const filtersSection = (req, appliedFilters) => {
+const filtersSection = (req, appliedFilters) => {
   const query = req.query
   const {
     limit,

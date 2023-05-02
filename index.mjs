@@ -24,8 +24,6 @@ import {
   omit,
 } from './query-utils.mjs'
 import {
-  filterRow,
-  filtersSection,
   indexPage,
   statePage,
   aboutPage,
