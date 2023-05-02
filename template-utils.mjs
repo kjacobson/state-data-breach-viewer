@@ -60,6 +60,9 @@ export const STATES = {
   LA: {
     name: 'Louisiana',
   },
+  MA: {
+    name: 'Massachusetts',
+  },
   ME: {
     name: 'Maine',
     site: 'https://apps.web.maine.gov/online/aeviewer/ME/40/list.shtml',
@@ -87,7 +90,7 @@ export const STATES = {
   NE: {
     name: 'Nebraska',
   },
-  MV: {
+  NV: {
     name: 'Nevada',
   },
   NH: {
