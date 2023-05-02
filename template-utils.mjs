@@ -1,3 +1,5 @@
+import STATIC_FILES from './static-files.json' assert { type: "json" }
+
 export const STATES = {
   AL: {
     name: 'Alabama',
@@ -166,6 +168,13 @@ export const STATES = {
     name: 'Wyoming',
   },
 }
+
+const isProd = process.env.NODE_ENV === "production"
+export const staticFileName = (key) => {
+  const { name, hash, ext } = STATIC_FILES[key]
+  return `${name}${isProd ? '!' + hash : ''}.${ext}`
+}
+export const staticHost = isProd ? 'https://breach-assets.topwords.me' : ''
 
 export const replaceSort = (query, sort) => {
   const newQuery = Object.assign({}, query)

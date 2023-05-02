@@ -1,4 +1,3 @@
-import STATIC_FILES from './static-files.json' assert { type: "json" }
 import {
   AND_COLUMNS,
   COLUMNS,
@@ -9,18 +8,13 @@ import {
 import {
   STATES,
   FILTER_VALUE_WIDTHS,
+  staticFileName,
+  staticHost,
   replaceSort,
   nextPageQuery,
   prevPageQuery,
   csvURL,
 } from './template-utils.mjs'
-
-const isProd = process.env.NODE_ENV === "production"
-const staticFileName = (key) => {
-  const { name, hash, ext } = STATIC_FILES[key]
-  return `${name}${isProd ? '!' + hash : ''}.${ext}`
-}
-const staticHost = isProd ? 'https://breach-assets.topwords.me' : ''
 
 
 const csvIcon = () => {

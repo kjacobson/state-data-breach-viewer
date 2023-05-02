@@ -6,6 +6,7 @@ import helmet from '@fastify/helmet'
 import urlData from '@fastify/url-data'
 import etag from '@fastify/etag'
 import rateLimit from '@fastify/rate-limit'
+import earlyHints from '@fastify/early-hints'
 import { json2csv } from 'json-2-csv';
 import { Low, Memory } from 'lowdb'
 import { S3Client, ListObjectsV2Command, GetObjectCommand } from "@aws-sdk/client-s3"
@@ -29,6 +30,10 @@ import {
   aboutPage,
   hipaaPage,
 } from './templates.mjs'
+import {
+  staticFileName,
+  staticHost,
+} from './template-utils.mjs'
 
 Array.prototype.do = function(fn) {
   fn(this)
@@ -113,6 +118,9 @@ fastify.register(helmet, {
     },
   }
 })
+fastify.register(earlyHints, {
+  warn: true // default: false
+})
 if (process.env.NODE_ENV !== 'production') {
   fastify.register(fstatic, {
     root: path.join(__dirname, 'public'),
@@ -173,6 +181,11 @@ fastify.get('/about', async (req, reply) => {
 // http://localhost:3000/?limit=20&sort=number_affected&exclude=breach_dates&desc=&offset=0&state=eq:WA[OR]eq:DE&entity_name=like:yum
 fastify.get('/', async (req, reply) => {
   reply.type('text/html')
+  await reply.writeEarlyHints([
+    { name: 'Content-Security-Policy', value: "img-src 'self' *.topwords.me;style-src 'self' *.topwords.me;script-src 'self' *.topwords.me;default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';object-src 'none';script-src-attr 'none';upgrade-insecure-requests" },
+    { name: 'Link', value: `<${staticHost}/public/${staticFileName('normalize_css')}>; rel=preload; as=style` },
+    { name: 'Link', value: `<${staticHost}/public/${staticFileName('index_css')}>; rel=preload; as=style` },
+  ])
   const {
     offset,
     limit,
