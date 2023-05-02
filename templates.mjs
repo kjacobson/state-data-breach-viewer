@@ -6,6 +6,14 @@ import {
   COLUMN_DISPLAY_NAMES,
   COLUMN_DATA_DEFAULTS,
 } from './columns.mjs'
+import {
+  STATES,
+  FILTER_VALUE_WIDTHS,
+  replaceSort,
+  nextPageQuery,
+  prevPageQuery,
+  csvURL,
+} from './template-utils.mjs'
 
 const isProd = process.env.NODE_ENV === "production"
 const staticFileName = (key) => {
@@ -14,213 +22,18 @@ const staticFileName = (key) => {
 }
 const staticHost = isProd ? 'https://breach-assets.topwords.me' : ''
 
-const STATES = {
-  AL: {
-    name: 'Alabama',
-  },
-  AK: {
-    name: 'Alaska',
-  },
-  AZ: {
-    name: 'Arizona',
-  },
-  AR: {
-    name: 'Arkansas',
-  },
-  CA: {
-    name: 'California',
-    site: 'https://oag.ca.gov/privacy/databreach/list',
-  },
-  CO: {
-    name: 'Colorado',
-  },
-  CT: {
-    name: 'Connecticut',
-  },
-  DE: {
-    name: 'Delaware',
-    site: 'https://attorneygeneral.delaware.gov/fraud/cpu/securitybreachnotification/database/',
-  },
-  DC: {
-    name: 'District of Columbia',
-  },
-  FL: {
-    name: 'Florida',
-  },
-  GA: {
-    name: 'Georgia',
-  },
-  HI: {
-    name: 'Hawaii',
-    site: 'https://cca.hawaii.gov/ocp/notices/security-breach/',
-  },
-  ID: {
-    name: 'Idaho',
-  },
-  IL: {
-    name: 'Illinois',
-  },
-  IN: {
-    name: 'Indiana',
-  },
-  IA: {
-    name: 'Iowa',
-    site: 'https://www.iowaattorneygeneral.gov/for-consumers/security-breach-notifications',
-  },
-  KS: {
-    name: 'Kansas',
-  },
-  KY: {
-    name: 'Kentucky',
-  },
-  LA: {
-    name: 'Louisiana',
-  },
-  ME: {
-    name: 'Maine',
-    site: 'https://apps.web.maine.gov/online/aeviewer/ME/40/list.shtml',
-  },
-  MD: {
-    name: 'Maryland',
-    site: 'https://www.marylandattorneygeneral.gov/Pages/IdentityTheft/breachnotices.aspx',
-  },
-  MI: {
-    name: 'Michigan',
-  },
-  MN: {
-    name: 'Minnesota',
-  },
-  MS: {
-    name: 'Mississippi',
-  },
-  MO: {
-    name: 'Missouri',
-  },
-  MT: {
-    name: 'Montana',
-    site: 'https://dojmt.gov/consumer/databreach/',
-  },
-  NE: {
-    name: 'Nebraska',
-  },
-  MV: {
-    name: 'Nevada',
-  },
-  NH: {
-    name: 'New Hampshire',
-    site: 'https://www.doj.nh.gov/consumer/security-breaches/',
-  },
-  NJ: {
-    name: 'New Jersey',
-    site: 'https://www.cyber.nj.gov/threat-center/public-data-breaches/',
-  },
-  NM: {
-    name: 'New Mexico',
-  },
-  NY: {
-    name: 'New York',
-  },
-  NC: {
-    name: 'North Carolina',
-  },
-  ND: {
-    name: 'North Dakota',
-    site: 'https://attorneygeneral.nd.gov/consumer-resources/data-breach-notices',
-  },
-  OH: {
-    name: 'Ohio',
-  },
-  OK: {
-    name: 'Oklahoma',
-  },
-  OR: {
-    name: 'Oregon',
-    site: 'https://justice.oregon.gov/consumer/DataBreach/',
-  },
-  PA: {
-    name: 'Pennsylvania',
-  },
-  RI: {
-    name: 'Rhode Island',
-  },
-  SC: {
-    name: 'South Carolina',
-  },
-  SD: {
-    name: 'South Dakota',
-  },
-  TN: {
-    name: 'Tennessee',
-  },
-  TX: {
-    name: 'Texas',
-    site: 'https://oag.my.site.com/datasecuritybreachreport/apex/DataSecurityReportsPage',
-  },
-  UT: {
-    name: 'Utah',
-  },
-  VT: {
-    name: 'Vermont',
-  },
-  VA: {
-    name: 'Virginia',
-  },
-  WA: {
-    name: 'Washington',
-    site: 'https://www.atg.wa.gov/data-breach-notifications',
-  },
-  WV: {
-    name: 'West Virginia',
-  },
-  WI: {
-    name: 'Wisconsin',
-  },
-  WY: {
-    name: 'Wyoming',
-  },
-}
 
-
-const replaceSort = (query, sort) => {
-  const newQuery = Object.assign({}, query)
-  newQuery.sort = sort
-  if (sort !== newQuery.sort) {
-    delete newQuery.desc
-  } else {
-    if (newQuery.desc !== undefined || !query.sort) {
-      delete newQuery.desc
-    } else {
-      newQuery.desc = ''
-    }
-  }
-  return new URLSearchParams(newQuery).toString()
-}
-export const nextPageQuery = (query) => {
-  const newQuery= Object.assign({}, query)
-  newQuery.offset = parseInt(query.offset, 10) || 0
-  newQuery.limit = parseInt(query.limit, 10) || 20
-  newQuery.offset += newQuery.limit
-  return new URLSearchParams(newQuery).toString()
-}
-const prevPageQuery = (query) => {
-  const newQuery= Object.assign({}, query)
-  newQuery.offset = parseInt(query.offset, 10) || 0
-  newQuery.limit = parseInt(query.limit, 10) || 20
-  if (newQuery.offset !== 0) {
-    newQuery.offset -= newQuery.limit
-  }
-  return new URLSearchParams(newQuery).toString()
-}
-const FILTER_VALUE_WIDTHS = {
-  state: 2,
-  business_state: 2,
-  business_zip: 5,
-  state_date: 10,
-  end_date: 10,
-  reported_date: 10,
-  published_date: 10,
-  entity_name: 20,
-  dba: 20,
+const csvIcon = () => {
+  return `
+    <svg version="1.0" xmlns="http://www.w3.org/2000/svg" width="18px" height="18px" viewBox="0 0 5120 5120" preserveAspectRatio="xMidYMid meet">
+      <g id="layer101" fill="rgb(17, 137, 13)" stroke="none">
+        <path d="M2636 5068 c-14 -18 -69 -91 -122 -163 -118 -160 -117 -159 -199 -270 -37 -49 -78 -105 -93 -124 -15 -18 -31 -40 -36 -49 -5 -8 -14 -22 -22 -31 -7 -9 -45 -59 -83 -111 -39 -52 -82 -108 -96 -125 -28 -34 -40 -67 -31 -90 4 -12 33 -15 170 -15 136 0 167 -3 180 -16 14 -13 16 -58 16 -340 l0 -326 30 -29 29 -30 325 3 324 3 26 28 26 28 0 322 c0 185 4 328 10 337 7 12 43 16 182 20 167 5 173 6 176 26 2 15 -103 164 -349 495 -193 261 -357 477 -363 481 -6 4 -25 8 -43 8 -25 0 -38 -8 -57 -32z" />
+        <path d="M1062 4567 l-22 -23 0 -592 0 -592 26 -10 c36 -14 148 -12 162 2 9 9 12 137 12 513 0 376 3 504 12 513 9 9 102 12 358 12 262 0 350 3 362 13 23 18 128 162 128 175 0 9 -129 12 -508 12 l-509 0 -21 -23z"/>
+        <path d="M3290 4579 c0 -11 77 -116 118 -161 l26 -28 353 0 c339 0 353 -1 363 -20 7 -13 9 -550 8 -1710 -3 -1490 -5 -1692 -18 -1700 -9 -6 -156 -10 -348 -10 l-333 0 -24 -25 -25 -24 0 -335 c0 -321 -1 -336 -19 -346 -30 -16 -2123 -14 -2139 2 -9 9 -12 180 -12 710 0 679 -1 698 -19 708 -27 14 -154 13 -169 -2 -9 -9 -12 -199 -12 -794 0 -755 1 -783 19 -805 l19 -24 1229 -3 c815 -2 1240 1 1263 7 27 8 124 99 410 386 l375 375 0 1881 0 1881 -28 24 -28 24 -505 0 c-353 0 -504 -3 -504 -11z" />
+        <path d="M802 3150 c-12 -5 -27 -21 -32 -35 -6 -16 -10 -255 -10 -621 0 -629 1 -641 45 -658 21 -8 2702 -8 2731 0 12 3 29 20 38 37 16 29 17 88 14 634 l-3 601 -24 26 -24 26 -1356 -1 c-790 0 -1365 -4 -1379 -9z m2160 -219 c54 -1 68 -4 72 -18 21 -74 193 -658 217 -733 16 -53 29 -99 29 -103 0 -4 -58 -7 -129 -7 l-128 0 -54 210 c-30 115 -57 206 -61 202 -4 -4 -25 -81 -48 -172 -23 -91 -45 -182 -51 -202 l-10 -38 -134 0 c-104 0 -135 3 -135 13 0 7 15 67 34 132 18 66 36 129 39 140 3 11 24 85 46 165 23 80 58 204 79 277 l37 132 35 3 c19 2 49 2 65 1 17 -1 60 -2 97 -2z m-1299 -29 c26 -11 47 -25 47 -29 -1 -6 -26 -128 -29 -140 -1 -2 -1 -13 -1 -25 0 -44 -11 -48 -70 -28 -97 34 -178 24 -232 -27 -36 -35 -51 -84 -51 -165 1 -76 28 -136 75 -171 38 -28 129 -34 188 -12 25 9 52 19 61 22 14 4 21 -12 39 -94 13 -54 23 -104 24 -111 1 -8 -21 -23 -49 -35 -41 -17 -71 -21 -170 -22 -115 0 -123 1 -187 32 -184 87 -270 284 -227 518 26 144 131 262 266 301 74 21 255 13 316 -14z m605 4 c50 -26 111 -85 135 -130 17 -32 21 -59 22 -126 0 -76 -3 -89 -27 -127 -41 -63 -75 -90 -165 -134 -96 -47 -109 -59 -93 -88 17 -34 101 -24 212 23 14 6 19 -1 28 -36 6 -23 15 -54 21 -68 5 -14 10 -43 12 -64 2 -39 2 -39 -58 -64 -51 -22 -76 -26 -170 -26 -92 -1 -118 3 -155 20 -138 64 -196 232 -125 362 35 64 73 96 183 151 69 35 82 45 82 66 0 30 -26 45 -80 45 -44 0 -148 -31 -186 -57 -13 -8 -24 -14 -24 -12 0 2 -7 42 -15 89 -8 47 -15 95 -15 107 0 29 34 51 118 74 86 24 249 22 300 -5z" />
+      </g>
+    </svg>
+  `
 }
 const filterRow = (column, statement, req) => {
   const ANDorOR = (statement.includes("AND")
@@ -417,11 +230,19 @@ const dataTable = (data, req, filters) => {
         <table>
           <thead>
             <tr>
+              <th colspan=${keys.length}>
+                <a href="${csvURL(req.urlData().path, req.query)}" title="Download all pages as a CSV">
+                  Download CSV
+                  ${csvIcon()}
+                </a>
+              </th>
+            </tr>
+            <tr>
               ${keys.map(key => (
                 `<th>
                   <a
                     href="${req.urlData().path}?${replaceSort(req.query, key)}"
-                    title="Sort by ${COLUMN_DISPLAY_NAMES[key]}${req.query.desc === undefined ? ' ( descending )' : ''}"
+                    title="Sort by ${COLUMN_DISPLAY_NAMES[key]}${req.query.desc === undefined ? ' (descending)' : ''}"
                   >
                     ${COLUMN_DISPLAY_NAMES[key]}&nbsp;${ req.query.sort === key || (!req.query.sort && key === 'reported_date') ? (
                       req.query.desc === undefined && !(key === 'reported_date' && !req.query.sort)
@@ -567,9 +388,9 @@ export const aboutPage = () => {
         updates are possible.
       </p>
       <h2>
-        Can I get this data in an CSV/XSL?
+        Can I get this data in an CSV/XLS?
       </h2>
-      <p>Not yet. Sorry.</p>
+      <p>Yes, there's a link at the top of each tale to download the results for your query as a CSV. XLS is not available for now, however.</p>
       <h2>
         API
       </h2>

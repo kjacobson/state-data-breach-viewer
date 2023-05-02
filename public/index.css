@@ -91,8 +91,23 @@ th {
     text-align: left;
     vertical-align: bottom;
 }
+tr:first-child > th {
+    font-weight: normal;
+    font-size: 0.875em;
+    text-align: right;
+    padding: 0.25em;
+    vertical-align: middle;
+}
+th svg {
+    vertical-align: middle;
+}
 th > a[href] {
     text-decoration: none;
+    vertical-align: middle;
+}
+th > a[href]:hover,
+th > a[href]:focus {
+    text-decoration: underline;
 }
 th .sorted-asc,
 th .sorted-desc,
