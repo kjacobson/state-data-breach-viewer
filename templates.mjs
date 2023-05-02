@@ -297,8 +297,8 @@ export const statePage = (data, req, filters, state) => {
     </main>
   `)
 }
-export const hipaaPage = (data, req, filters, state) => {
-  return wrapper(state, `
+export const hipaaPage = (data, req, filters) => {
+  return wrapper('HIPAA', `
     <header>
       ${stateMenu('HIPAA')}
       <h1>Data for all states from the HIPAA breach database</h1>
