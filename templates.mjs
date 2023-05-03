@@ -124,6 +124,9 @@ const filtersSection = (req, appliedFilters) => {
 const tableCell = (key, val) => {
   if (Array.isArray(val)) {
     val = val.join(', ')
+  } else
+  if (!isNaN(val)) {
+    val = val.toLocaleString("en-US")
   }
   if (key === 'letter_url' && val !== '') {
     return `<a href="${val}">View letter</a>`

@@ -41,8 +41,10 @@ Array.prototype.do = function(fn) {
 }
 
 const addPaginationData = (req, offset, limit) => (arr) => {
-  const max = Math.min(offset + limit, arr.length)
-  req.range = `entries ${offset + 1}-${max} of ${arr.length}`
+  const max = Math.min(offset + limit, arr.length).toLocaleString("en-US")
+  const start = (offset + 1).toLocaleString("en-US")
+  const end = arr.length.toLocaleString("en-US")
+  req.range = `entries ${start} – ${max} of ${end}`
   if (arr.length > offset + limit) {
     req.hasMore = true
   }
