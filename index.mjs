@@ -104,7 +104,10 @@ process.env.LAST_UPDATE = lastUpdate
 await db.read()
 
 console.log("Starting fastify")
-const fastify = Fastify({ logger: true })
+const fastify = Fastify({
+  logger: true,
+  ignoreTrailingSlash: true
+})
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
