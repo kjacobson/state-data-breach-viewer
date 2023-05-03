@@ -58,6 +58,12 @@ const addPaginationResponseHeaders = (resp, offset, limit) => (arr) => {
 let db
 let lastUpdate
 if (process.env.NODE_ENV === 'production') {
+  const streamToString = (stream) => new Promise((resolve, reject) => {
+    const chunks = [];
+    stream.on('data', (chunk) => chunks.push(chunk));
+    stream.on('error', reject);
+    stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
+  });
   const client = new S3Client({ region: 'us-east-1' })
   let listDBCommand = new ListObjectsV2Command({
     Bucket: "ksj-lambda-zips",
@@ -81,11 +87,8 @@ if (process.env.NODE_ENV === 'production') {
   const dbFile = await client.send(openDBCommand)
   console.log("Reading latest db file into memory")
   const dbFileStream = dbFile.Body
-  let dbData = ""
-  for await (const chunk of dbFileStream) {
-    dbData += chunk.toString('utf-8')
-  }
-  dbData = JSON.parse(dbData)
+  const dbJSON = await streamToString(dbFileStream)
+  const dbData = JSON.parse(dbJSON)
 
   console.log("Initializing memory DB")
   db = new Low(new Memory(), dbData)
