@@ -110,6 +110,7 @@ fastify.register(rateLimit, {
   timeWindow: '1 minute'
 })
 fastify.register(helmet, {
+  enableCSPNonces: true,
   contentSecurityPolicy: {
     directives: {
       "img-src": ["'self'", "*.topwords.me"],
@@ -172,7 +173,7 @@ fastify.get('/api/archive', async (req, reply) => {
 })
 fastify.get('/about', async (req, reply) => {
   reply.type('text/html')
-  reply.send(aboutPage())
+  reply.send(aboutPage(req, reply))
 })
 // http://localhost:3000/?limit=10&sort=number_affected&desc&number_affected=gt:5000[AND]lt:8000
 // http://localhost:3000/?limit=10&sort=number_affected&desc&reported_date=gt:01/01/2023[AND]lt:04/01/2023
@@ -204,7 +205,7 @@ fastify.get('/', async (req, reply) => {
     .map(obj => exclude && exclude.length ? omit(obj, exclude) : obj)
     .map(obj => omit(obj, ['business_address', 'business_state', 'business_city', 'business_zip', 'notice_methods', 'dba']))
 
-  reply.send(indexPage(data, req, filters))
+  reply.send(indexPage(req, reply, data, filters))
 })
 fastify.get('/breach-data.csv', async (req, reply) => {
   reply.type('text/csv')
@@ -264,7 +265,7 @@ fastify.get('/hipaa', async (req, reply) => {
     .map(obj => pick(obj, COLS_BY_STATE.HIPAA))
     .map(obj => exclude && exclude.length ? omit(obj, exclude) : obj)
 
-  reply.send(hipaaPage(data, req, filters))
+  reply.send(hipaaPage(req, reply, data, filters))
 })
 fastify.get('/hipaa.csv', async (req, reply) => {
   reply.type('text/csv')
@@ -338,7 +339,7 @@ fastify.get('/states/:code', async (req, reply) => {
     .map(obj => pick(obj, COLS_BY_STATE[stateCode] || COLS_BY_STATE.HIPAA))
     .map(obj => exclude && exclude.length ? omit(obj, exclude) : obj)
 
-  reply.send(statePage(data, req, filters, stateCode))
+  reply.send(statePage(req, reply, data, filters, stateCode))
 })
 fastify.get('/states/:code.csv', async (req, reply) => {
   reply.type('text/csv')

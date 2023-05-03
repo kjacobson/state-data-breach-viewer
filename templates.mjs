@@ -16,9 +16,11 @@ import {
   csvURL,
 } from './template-utils.mjs'
 
+const normalizeCSS = (nonce) => (
+    `<style nonce="${nonce}">html {line-height: 1.15;-webkit-text-size-adjust: 100%;}body {margin: 0;}main {display: block;}h1 {font-size: 2em;margin: 0.67em 0;}hr {box-sizing: content-box;height: 0;overflow: visible;}pre {font-family: monospace, monospace;font-size: 1em;}a {background-color: transparent;}abbr[title] {border-bottom: none;text-decoration: underline;text-decoration: underline dotted;}b, strong {font-weight: bolder;}code, kbd, samp {font-family: monospace, monospace;font-size: 1em;}small {font-size: 80%;}sub, sup {font-size: 75%;line-height: 0;position: relative;vertical-align: baseline;}sub {bottom: -0.25em;}sup {top: -0.5em;}img {border-style: none;}button, input, optgroup, select, textarea {font-family: inherit;font-size: 100%;line-height: 1.15;margin: 0;}button, input {overflow: visible;}button, select {text-transform: none;}button, [type="button"], [type="reset"], [type="submit"] {-webkit-appearance: button;}button::-moz-focus-inner, [type="button"]::-moz-focus-inner, [type="reset"]::-moz-focus-inner, [type="submit"]::-moz-focus-inner {border-style: none;padding: 0;}button:-moz-focusring, [type="button"]:-moz-focusring, [type="reset"]:-moz-focusring, [type="submit"]:-moz-focusring {outline: 1px dotted ButtonText;}fieldset {padding: 0.35em 0.75em 0.625em;}legend {box-sizing: border-box;color: inherit;display: table;max-width: 100%;padding: 0;white-space: normal;}progress {vertical-align: baseline;}textarea {overflow: auto;}[type="checkbox"], [type="radio"] {box-sizing: border-box;padding: 0;}[type="number"]::-webkit-inner-spin-button, [type="number"]::-webkit-outer-spin-button {height: auto;}[type="search"] {-webkit-appearance: textfield;outline-offset: -2px;}[type="search"]::-webkit-search-decoration {-webkit-appearance: none;}::-webkit-file-upload-button {-webkit-appearance: button;font: inherit;}details {display: block;}summary {display: list-item;}template {display: none;}[hidden] {display: none;}</style>`
+)
 
-const csvIcon = () => {
-  return `
+const csvIcon = `
     <svg version="1.0" xmlns="http://www.w3.org/2000/svg" width="18px" height="18px" viewBox="0 0 5120 5120" preserveAspectRatio="xMidYMid meet">
       <g id="layer101" fill="rgb(17, 137, 13)" stroke="none">
         <path d="M2636 5068 c-14 -18 -69 -91 -122 -163 -118 -160 -117 -159 -199 -270 -37 -49 -78 -105 -93 -124 -15 -18 -31 -40 -36 -49 -5 -8 -14 -22 -22 -31 -7 -9 -45 -59 -83 -111 -39 -52 -82 -108 -96 -125 -28 -34 -40 -67 -31 -90 4 -12 33 -15 170 -15 136 0 167 -3 180 -16 14 -13 16 -58 16 -340 l0 -326 30 -29 29 -30 325 3 324 3 26 28 26 28 0 322 c0 185 4 328 10 337 7 12 43 16 182 20 167 5 173 6 176 26 2 15 -103 164 -349 495 -193 261 -357 477 -363 481 -6 4 -25 8 -43 8 -25 0 -38 -8 -57 -32z" />
@@ -28,7 +30,7 @@ const csvIcon = () => {
       </g>
     </svg>
   `
-}
+
 const filterRow = (column, statement, req) => {
   const ANDorOR = (statement.includes("AND")
     ? "AND"
@@ -132,9 +134,10 @@ const tableCell = (key, val) => {
     return val || COLUMN_DATA_DEFAULTS[key]
   }
 }
-const wrapper = (title, bodyContent) => {
+const wrapper = (req, resp, title, bodyContent) => {
   // <link rel="icon" href="/icon.svg" type="image/svg+xml">
   // <link rel="apple-touch-icon" href="icon.png">
+  // <link rel="stylesheet" href="${staticHost}/public/${staticFileName('normalize_css')}">
   return `
     <!doctype html>
     <html lang="en">
@@ -148,7 +151,7 @@ const wrapper = (title, bodyContent) => {
         <link rel="icon" type="image/png" sizes="16x16" href="${staticHost}/public/${staticFileName('favicon')}">
         <link rel="icon" type="image/png" sizes="32x32" href="${staticHost}/public/${staticFileName('favicon')}">
         <link rel="apple-touch-icon" sizes="180x180" href="${staticHost}/public/${staticFileName('favicon')}">
-        <link rel="stylesheet" href="${staticHost}/public/${staticFileName('normalize_css')}">
+        ${normalizeCSS(resp.cspNonce.style)}
         <link rel="stylesheet" href="${staticHost}/public/${staticFileName('index_css')}">
       </head>
       <body>
@@ -227,7 +230,7 @@ const dataTable = (data, req, filters) => {
               <th colspan=${keys.length}>
                 <a href="${csvURL(req.urlData().path, req.query)}" title="Download all pages as a CSV">
                   Download CSV
-                  ${csvIcon()}
+                  ${csvIcon}
                 </a>
               </th>
             </tr>
@@ -268,8 +271,8 @@ const dataTable = (data, req, filters) => {
     ) }
   `
 }
-export const indexPage = (data, req, filters) => {
-  return wrapper('Home', `
+export const indexPage = (req, resp, data, filters) => {
+  return wrapper(req, resp, 'Home', `
     <header>
       ${stateMenu()}
       <h1>Data breach information for all states</h1>
@@ -279,8 +282,8 @@ export const indexPage = (data, req, filters) => {
     </main>
   `)
 }
-export const statePage = (data, req, filters, state) => {
-  return wrapper(state, `
+export const statePage = (req, resp, data, filters, state) => {
+  return wrapper(req, resp, state, `
     <header>
       ${stateMenu(state)}
       <h1>Viewing data for ${STATES[state].name}${COLS_BY_STATE[state] ? '' : '*'}</h1>
@@ -291,8 +294,8 @@ export const statePage = (data, req, filters, state) => {
     </main>
   `)
 }
-export const hipaaPage = (data, req, filters) => {
-  return wrapper('HIPAA', `
+export const hipaaPage = (req, resp, data, filters) => {
+  return wrapper(req, resp, 'HIPAA', `
     <header>
       ${stateMenu('HIPAA')}
       <h1>Data for all states from the HIPAA breach database</h1>
@@ -302,8 +305,8 @@ export const hipaaPage = (data, req, filters) => {
     </main>
   `)
 }
-export const aboutPage = () => {
-  return wrapper('About', `
+export const aboutPage = (req, resp) => {
+  return wrapper(req, resp, 'About', `
     <header>
       ${stateMenu('', true)}
       <h1>About this site</h1>
@@ -331,9 +334,9 @@ export const aboutPage = () => {
       </p>
       <ul>
         ${ Object.entries(STATES).map(([code, { name, site }]) => (
-          `<li>
+          site ? `<li>
             ${name}: <a href="${site}" target="new">${site}</a>
-          </li>`
+          </li>` : ''
         )).join('') }
         <li>
             All other states: HIPAA database at
@@ -365,7 +368,7 @@ export const aboutPage = () => {
       </p>
       <ul>
         ${ Object.entries(STATES).map(([code, _]) => {
-          const colNames = COLS_BY_STATE[code]
+          const colNames = COLS_BY_STATE[code] || COLS_BY_STATE.HIPAA
           const colDisplayNames = colNames.map((col) => (
             COLUMN_DISPLAY_NAMES[col]
           )).join(', ')
