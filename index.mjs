@@ -155,7 +155,7 @@ fastify.addHook('onRequest', (request, reply, done) => {
     include,
     ...rest
   } = request.query
-  if (filter_column) {
+  if (filter_column || include) {
     console.log("Received a form submission for: " + request.url)
     filter_column = Array.isArray(filter_column) ? filter_column : [ filter_column ]
     filter_comp = Array.isArray(filter_comp) ? filter_comp : [ filter_comp ]
