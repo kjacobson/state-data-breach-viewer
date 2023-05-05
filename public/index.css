@@ -75,6 +75,10 @@ fieldset > legend {
 }
 #excludeColumns > select {
     flex-grow: 1;
+    width: max-content;
+}
+#excludeColumns > select > option {
+    padding-right: 1.5em;
 }
 #excludeColumns > select > option:not(:checked) {
     font-style: italic;
