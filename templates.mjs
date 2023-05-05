@@ -46,7 +46,8 @@ const filterRow = (column, statement, req) => {
   }
   const cols = req.params.code ? COLS_BY_STATE[req.params.code] || COLS_BY_STATE.HIPAA.filter(col => col !== 'state') : COLUMNS
   return `
-    <div class="table-filter">
+    <div class="column-filter">
+      <div class="filter-clause">
       ${ clauses.map((clause) => {
         const [comparison, value] = clause ? clause.split(":") : ['', '']
         const clearURLBase = new URLSearchParams(req.query);
@@ -83,11 +84,12 @@ const filterRow = (column, statement, req) => {
             `<a href="${req.urlData().path}?${clearURLBase.toString()}" title="Clear filters for this column">Clear</a>`
           ) : ''}
         `
-      }).join(ANDorOR) }
+      }).join(ANDorOR + '</div><div class="filter-clause">') }
+      </div>
     </div>
   `
 }
-const filtersSection = (req, appliedFilters) => {
+const filtersSection = (req, appliedFilters, keys) => {
   const query = req.query
   const {
     limit,
@@ -102,7 +104,7 @@ const filtersSection = (req, appliedFilters) => {
   if (desc !== undefined) { clearQuery.set('desc', '') }
   return `
     <form method="GET" action="${req.urlData().path}">
-      <fieldset>
+      <fieldset id="applyFilters">
         <legend>Filter results</legend>
         <input type="hidden" name="offset" value="0" />
         ${ ['limit', 'sort', 'desc'].map(param => (
@@ -116,6 +118,20 @@ const filtersSection = (req, appliedFilters) => {
         ${filterRow('', '', req)}
         <button type="submit">Apply filters</button>
         <a href="${req.urlData().path}?${clearQuery.toString()}">Clear all filters</a>
+      </fieldset>
+      <fieldset id="excludeColumns">
+        <legend>Included&nbsp;columns</legend>
+        <select multiple="multiple" name="include">
+          ${keys.map((name) => (
+            `<option value="${name}" selected>${COLUMN_DISPLAY_NAMES[name]}</option>`
+          )).join('')}
+          ${Object.entries(COLUMN_DISPLAY_NAMES).filter(([name]) => !keys.includes(name)).map(([name, display_name]) => (
+            `<option value="${name}">${display_name}</option>`
+          )).join('')}
+        </select>
+        <button type="submit">
+          Submit
+        </button>
       </fieldset>
     </form>
   `
@@ -222,7 +238,7 @@ const dataTable = (data, req, filters) => {
   const keys = data.length ? Object.keys(data[0]) : undefined
   const hasData = data.length > 0
   return ` 
-    ${filtersSection(req, filters)}
+    ${filtersSection(req, filters, keys)}
     ${ hasData ? (
       `
       ${pagination(req)}

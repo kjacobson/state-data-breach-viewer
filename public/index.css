@@ -53,6 +53,9 @@ a[href] {
     padding: 0 0 2px;
 }
 form {
+    display: flex;
+    flex-direction: row;
+    font-size: 0.875em;
     margin: 0 0 1em;
 }
 fieldset {
@@ -62,16 +65,46 @@ fieldset {
 fieldset > legend {
     font-weight: bold;
 }
-.table-filter {
+#applyFilters {
+    flex-grow: 1;
+}
+#excludeColumns {
+    display: flex;
+    flex-basis: auto;
+    flex-direction: column;
+}
+#excludeColumns > select {
+    flex-grow: 1;
+}
+#excludeColumns > select > option:not(:checked) {
+    font-style: italic;
+}
+#excludeColumns > button {
+    align-self: first baseline;
+    margin-top: 0.5em;
+}
+@container mainContain (width < 700px) {
+    form {
+        flex-wrap: wrap;
+    }
+    #excludeColumns {
+        flex-grow: 1;
+    }
+}
+.column-filter {
     align-items: end;
     display: flex;
     flex-wrap: wrap;
     margin-bottom: 1em;
 }
-.table-filter > label {
+.filter-clause {
+    display: flex;
+    align-items: end;
+}
+.filter-clause > label {
     margin: 0 0.5em;
 }
-.table-filter > label:first-child {
+.filter-clause:first-child > label:first-child {
     margin: 0;
 }
 .table-container {
@@ -125,6 +158,7 @@ td {
     vertical-align: top;
 }
 main {
+    container: mainContain / inline-size;
     padding-bottom: 3em;
 }
 main > article,

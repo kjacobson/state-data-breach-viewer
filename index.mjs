@@ -152,6 +152,7 @@ fastify.addHook('onRequest', (request, reply, done) => {
     filter_column,
     filter_comp,
     filter_value,
+    include,
     ...rest
   } = request.query
   if (filter_column) {
@@ -169,6 +170,9 @@ fastify.addHook('onRequest', (request, reply, done) => {
       }
       return acc;
     }, Object.assign({}, rest))
+    if (include) {
+      newQuery.exclude = COLUMNS.filter((col) => !include.includes(col))
+    }
     const redirectPath = request.urlData().path + '?' + new URLSearchParams(newQuery).toString()
     console.log("Redirecting to: " + redirectPath)
     reply.redirect(302, redirectPath)
