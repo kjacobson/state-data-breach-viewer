@@ -87,6 +87,14 @@ fieldset > legend {
     align-self: first baseline;
     margin-top: 0.5em;
 }
+@container mainContain (width < 500px) {
+    body {
+        padding: 0 1.5em 3em;
+    }
+    .filter-clause {
+        flex-wrap: wrap;
+    }
+}
 @container mainContain (width < 700px) {
     form {
         flex-wrap: wrap;
