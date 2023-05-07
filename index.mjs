@@ -96,7 +96,7 @@ if (process.env.NODE_ENV === 'production') {
   db = new Low(new Memory(), dbData)
 } else {
   const { JSONFile } = await import('lowdb/node')
-  const fileName = "20230429233241.json"
+  const fileName = "20230507182246.json"
   db = new Low(new JSONFile(`./${fileName}`), {})
   lastUpdate = new Date(`${fileName.substring(4,6)}-${fileName.substring(6,8)}-${fileName.substring(0,4)}`)
     .toLocaleDateString('en-US', { timeZone: 'America/New_York'})
