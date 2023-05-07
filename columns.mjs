@@ -80,5 +80,6 @@ export const COLS_BY_STATE = {
     'published_date', 'number_affected', 'data_accessed', 'breach_type', 'data_source', 'notice_methods'
   ],
   WA: ['entity_name', 'start_date', 'reported_date', 'number_affected', 'data_accessed', 'breach_type', 'data_source', 'letter_url'],
+  WI: ['entity_name', 'breach_dates', 'reported_date', 'number_affected', 'data_accessed'],
   HIPAA: ['entity_name', 'state', 'reported_date', 'number_affected', 'breach_type', 'data_source'], 
 }

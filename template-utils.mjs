@@ -163,6 +163,7 @@ export const STATES = {
   },
   WI: {
     name: 'Wisconsin',
+    site: 'https://datcp.wi.gov/Pages/Programs_Services/DataBreaches.aspx',
   },
   WY: {
     name: 'Wyoming',
