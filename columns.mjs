@@ -64,22 +64,22 @@ export const COLUMN_DATA_DEFAULTS = {
   url: 'N/A',
 }
 export const COLS_BY_STATE = {
-  CA: ['entity_name', 'breach_dates', 'reported_date'],
+  CA: ['entity_name', 'breach_dates', 'reported_date', 'number_affected', 'breach_type', 'data_source'],
   DE: ['entity_name', 'start_date', 'end_date', 'breach_dates', 'reported_date', 'number_affected', 'breach_type', 'data_source'],
   HI: ['entity_name', 'reported_date', 'number_affected', 'breach_type', 'data_source', 'letter_url'],
-  IA: ['entity_name', 'reported_date', 'breach_type', 'data_source', 'letter_url'],
+  IA: ['entity_name', 'reported_date', 'number_affected', 'breach_type', 'data_source', 'letter_url'],
   MD: ['entity_name', 'reported_date', 'number_affected', 'data_accessed', 'breach_type', 'data_source'],
-  ME: ['entity_name', 'reported_date', 'breach_type', 'data_source', 'url'],
+  ME: ['entity_name', 'reported_date', 'number_affected', 'breach_type', 'data_source', 'url'],
   MT: ['entity_name', 'letter_url', 'start_date', 'end_date', 'reported_date', 'number_affected', 'breach_type', 'data_source'],
   ND: ['entity_name', 'dba', 'letter_url', 'start_date', 'end_date', 'breach_dates', 'reported_date', 'number_affected', 'breach_type', 'data_source'],
-  NH: ['entity_name', 'reported_date', 'breach_type', 'data_source', 'url'],
-  NJ: ['entity_name', 'reported_date', 'breach_type', 'data_source', 'url'],
-  OR: ['entity_name', 'start_date', 'end_date', 'breach_dates', 'reported_date', 'breach_type', 'data_source'],
+  NH: ['entity_name', 'reported_date', 'number_affected', 'breach_type', 'data_source', 'url'],
+  NJ: ['entity_name', 'reported_date', 'number_affected', 'breach_type', 'data_source', 'url'],
+  OR: ['entity_name', 'start_date', 'end_date', 'breach_dates', 'reported_date', 'number_affected', 'breach_type', 'data_source'],
   TX: [
     'entity_name', 'business_address', 'business_city', 'business_state', 'business_zip',
     'published_date', 'number_affected', 'data_accessed', 'breach_type', 'data_source', 'notice_methods'
   ],
   WA: ['entity_name', 'start_date', 'reported_date', 'number_affected', 'data_accessed', 'breach_type', 'data_source', 'letter_url'],
-  WI: ['entity_name', 'breach_dates', 'reported_date', 'number_affected', 'data_accessed'],
+  WI: ['entity_name', 'breach_dates', 'reported_date', 'number_affected', 'data_accessed', 'breach_type', 'data_source'],
   HIPAA: ['entity_name', 'state', 'reported_date', 'number_affected', 'breach_type', 'data_source'], 
 }
