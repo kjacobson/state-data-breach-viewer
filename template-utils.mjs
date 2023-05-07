@@ -189,6 +189,7 @@ export const replaceSort = (query, sort) => {
       newQuery.desc = ''
     }
   }
+  newQuery.offset = 0
   return new URLSearchParams(newQuery).toString()
 }
 export const FILTER_VALUE_WIDTHS = {
