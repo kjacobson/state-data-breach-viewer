@@ -262,8 +262,8 @@ const dataTable = (data, req, filters) => {
                   >
                     ${COLUMN_DISPLAY_NAMES[key]}&nbsp;${ req.query.sort === key || (!req.query.sort && key === 'reported_date') ? (
                       req.query.desc === undefined && !(key === 'reported_date' && !req.query.sort)
-                      ? "<span class='sorted-desc'>⬇</span>"
-                      : "<span class='sorted-asc'>⬆</span>"
+                      ? "<span class='sorted-asc'>⬆</span>"
+                      : "<span class='sorted-desc'>⬇</span>"
                     ) : "<span class='unsorted'>⬍</span>" }
                   </a>
                 </th>`

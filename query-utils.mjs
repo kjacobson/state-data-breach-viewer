@@ -19,6 +19,44 @@ export const omit = (obj, keys) => {
   )
 }
 
+export const sortAny = (key, desc) => {
+  const isDate = DATE_FIELDS.includes(key)
+  const isNumeric = key === "number_affected"
+  return (a, b) => {
+    let aVal = a[key]
+    let bVal = b[key]
+    if (isDate) {
+      aVal = new Date(aVal)
+      bVal = new Date(bVal)
+      if (aVal.toString() === "Invalid Date") {
+        aVal = desc ? -Infinity : Infinity
+      }
+      if (bVal.toString() === "Invalid Date") {
+        bVal = desc ? -Infinity : Infinity
+      }
+      return desc ? bVal - aVal : aVal - bVal
+    } else
+    if (isNumeric) {
+      if (isNaN(aVal) || aVal === '') {
+        aVal = desc ? -Infinity : Infinity
+      } else
+      if (isNaN(bVal) || bVal === '') {
+        bVal = desc ? -Infinity : Infinity
+      }
+      return desc ? bVal - aVal : aVal - bVal
+    } else {
+      aVal = aVal.toLowerCase()
+      bVal = bVal.toLowerCase()
+      return desc
+        ? (aVal < bVal ? 1 : (
+          bVal < aVal ? -1 : 0
+        ))
+        : (aVal > bVal ? 1 : (
+          bVal > aVal ? -1 : 0
+        ))
+    }
+  }
+}
 export const sortBy = (key, desc) => {
   return (a, b) => {
     return desc ? (
@@ -32,25 +70,6 @@ export const sortBy = (key, desc) => {
         ? 1
         : (
           (b[key] > a[key]) ? -1 : 0
-        )
-    )
-  }
-}
-export const sortByDate = (key, desc) => {
-  return (a, b) => {
-    const c = new Date(a[key])
-    const d = new Date(b[key])
-    return desc ? (
-      (c < d)
-        ? 1
-        : (
-          (d < c) ? -1 : 0
-        )
-    ) : (
-      (c > d)
-        ? 1
-        : (
-          (d > c) ? -1 : 0
         )
     )
   }

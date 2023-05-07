@@ -19,8 +19,8 @@ import {
 import {
   extractQueryVars,
   applyFilters,
+  sortAny,
   sortBy,
-  sortByDate,
   pick,
   omit,
 } from './query-utils.mjs'
@@ -214,7 +214,7 @@ fastify.get('/', async (req, reply) => {
   const data = db.data.breaches
     .filter(filterFn)
     .do(addPaginationData(req, offset, limit))
-    .sort(DATE_FIELDS.includes(sort) ? sortByDate(sort, desc) : sortBy(sort, desc))
+    .sort(sortAny(sort, desc))
     .slice(offset, offset + limit)
     .map(obj => exclude && exclude.length ? omit(obj, exclude) : obj)
     .map(obj => omit(obj, ['business_address', 'business_state', 'business_city', 'business_zip', 'notice_methods', 'dba']))
@@ -233,7 +233,7 @@ fastify.get('/breach-data.csv', async (req, reply) => {
 
   const data = db.data.breaches
     .filter(filterFn)
-    .sort(DATE_FIELDS.includes(sort) ? sortByDate(sort, desc) : sortBy(sort, desc))
+    .sort(sortAny(sort, desc))
     .map(obj => exclude && exclude.length ? omit(obj, exclude) : obj)
   const csv = await json2csv(data, { emptyFieldValue: '' })
   reply.send(csv)
@@ -251,7 +251,7 @@ fastify.get('/api/', async (req, reply) => {
   return db.data.breaches
     .filter(filterFn)
     .do(addPaginationResponseHeaders(reply, offset, limit))
-    .sort(DATE_FIELDS.includes(sort) ? sortByDate(sort, desc) : sortBy(sort, desc))
+    .sort(sortAny(sort, desc))
     .slice(offset, offset + limit)
     .map(obj => exclude && exclude.length ? omit(obj, exclude) : obj)
 })
@@ -274,7 +274,7 @@ fastify.get('/hipaa', async (req, reply) => {
     .filter((entry) => entry.data_source)
     .filter(filterFn)
     .do(addPaginationData(req, offset, limit))
-    .sort(DATE_FIELDS.includes(sort) ? sortByDate(sort, desc) : sortBy(sort, desc))
+    .sort(sortAny(sort, desc))
     .slice(offset, offset + limit)
     .map(obj => pick(obj, COLS_BY_STATE.HIPAA))
     .map(obj => exclude && exclude.length ? omit(obj, exclude) : obj)
@@ -295,7 +295,7 @@ fastify.get('/hipaa.csv', async (req, reply) => {
     // data_source is HIPAA-only and is how we identify these sources
     .filter((entry) => entry.data_source)
     .filter(filterFn)
-    .sort(DATE_FIELDS.includes(sort) ? sortByDate(sort, desc) : sortBy(sort, desc))
+    .sort(sortAny(sort, desc))
     .map(obj => pick(obj, COLS_BY_STATE.HIPAA))
     .map(obj => exclude && exclude.length ? omit(obj, exclude) : obj)
 
@@ -318,7 +318,7 @@ fastify.get('/api/hipaa', async (req, reply) => {
     .filter((entry) => entry.data_source)
     .filter(filterFn)
     .do(addPaginationResponseHeaders(reply, offset, limit))
-    .sort(DATE_FIELDS.includes(sort) ? sortByDate(sort, desc) : sortBy(sort, desc))
+    .sort(sortAny(sort, desc))
     .slice(offset, offset + limit)
     .map(obj => pick(obj, COLS_BY_STATE.HIPAA))
     .map(obj => exclude && exclude.length ? omit(obj, exclude) : obj)
@@ -348,7 +348,7 @@ fastify.get('/states/:code', async (req, reply) => {
       filterFn(breach)
     ))
     .do(addPaginationData(req, offset, limit))
-    .sort(DATE_FIELDS.includes(sort) ? sortByDate(sort, desc) : sortBy(sort, desc))
+    .sort(sortAny(sort, desc))
     .slice(offset, offset + limit)
     .map(obj => pick(obj, COLS_BY_STATE[stateCode] || COLS_BY_STATE.HIPAA))
     .map(obj => exclude && exclude.length ? omit(obj, exclude) : obj)
@@ -371,7 +371,7 @@ fastify.get('/states/:code.csv', async (req, reply) => {
       breach.state === stateCode &&
       filterFn(breach)
     ))
-    .sort(DATE_FIELDS.includes(sort) ? sortByDate(sort, desc) : sortBy(sort, desc))
+    .sort(sortAny(sort, desc))
     .map(obj => pick(obj, COLS_BY_STATE[stateCode] || COLS_BY_STATE.HIPAA))
     .map(obj => exclude && exclude.length ? omit(obj, exclude) : obj)
 
@@ -396,7 +396,7 @@ fastify.get('/api/states/:code', async (req, reply) => {
       filterFn(breach)
     ))
     .do(addPaginationResponseHeaders(reply, offset, limit))
-    .sort(DATE_FIELDS.includes(sort) ? sortByDate(sort, desc) : sortBy(sort, desc))
+    .sort(sortAny(sort, desc))
     .slice(offset, offset + limit)
     .map(obj => pick(obj, COLS_BY_STATE[stateCode] || COLS_BY_STATE.HIPAA))
     .map(obj => exclude && exclude.length ? omit(obj, exclude) : obj)
