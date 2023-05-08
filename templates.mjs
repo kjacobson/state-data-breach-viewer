@@ -156,14 +156,15 @@ const tableCell = (key, val) => {
 const wrapper = (req, resp, title, bodyContent) => {
   // <link rel="icon" href="/icon.svg" type="image/svg+xml">
   // <link rel="apple-touch-icon" href="icon.png">
-  // <link rel="stylesheet" href="${staticHost}/public/${staticFileName('normalize_css')}">
   return `
     <!doctype html>
     <html lang="en">
       <head>
         <meta charset="utf-8">
         <title>State data breach browser - ${title}</title>
-        <meta name="description" content="">
+        <meta name="description" content="View aggregated information about reported US data breaches, drawn from state data breach websites
+        and the HHS HIPAA/HITECH data breach directory. Data can be sorted and filtered by state, number of people affected, type of data accessed,
+        dates of breach, reported date of breach, and other information. Information can be accessed via JSON API and exported to CSV.">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
         <link rel="icon" href="${staticHost}/public/${staticFileName('favicon')}" sizes="any">
