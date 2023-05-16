@@ -216,9 +216,9 @@ const pagination = (req) => {
     <div class="pagination">
       <span class="pagination-range">Showing ${req.range}</span>
       <span class="pagination-links">
-        ${hasPrev ? `<a href="${req.urlData().path}?${prevPageQuery(req.query)}">Previous page</a>` : ""}
+        ${hasPrev ? `<a href="${req.urlData().path}?${prevPageQuery(req.query)}">&laquo; Previous page</a>` : ""}
         ${hasMore && hasPrev ? " | " : ""}
-        ${hasMore ? `<a href="${req.urlData().path}?${nextPageQuery(req.query)}">Next page</a>` : "" }
+        ${hasMore ? `<a href="${req.urlData().path}?${nextPageQuery(req.query)}">Next page &raquo;</a>` : "" }
       </span>
     </div>
   `
