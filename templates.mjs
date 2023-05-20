@@ -102,6 +102,7 @@ const filtersSection = (req, appliedFilters, keys) => {
   if (offset) { clearQuery.set('offset', 0) }
   if (sort) { clearQuery.set('sort', sort) }
   if (desc !== undefined) { clearQuery.set('desc', '') }
+  keys = keys || COLUMNS
   return `
     <form method="GET" action="${req.urlData().path}">
       <fieldset id="applyFilters">
@@ -290,6 +291,18 @@ const dataTable = (data, req, filters) => {
       `<p>No data found that matches your query</p>`
     ) }
   `
+}
+export const errorPage = (req, resp, status, message) => {
+  return wrapper(req, resp, `Error: ${message}`, `
+    <header>
+      ${stateMenu()}
+      <h1>${status} ${message}</h1>
+    </header>
+    <main>
+      Something went wrong. It was probably our fault, but you may have attempted to access a page (or data)
+      that does not exist.
+    </main>
+  `)
 }
 export const indexPage = (req, resp, data, filters) => {
   return wrapper(req, resp, 'Home', `

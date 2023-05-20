@@ -29,8 +29,10 @@ import {
   statePage,
   aboutPage,
   hipaaPage,
+  errorPage,
 } from './templates.mjs'
 import {
+  STATES,
   staticFileName,
   staticHost,
 } from './template-utils.mjs'
@@ -180,6 +182,10 @@ fastify.addHook('onRequest', (request, reply, done) => {
   }
   done()
 })
+fastify.setNotFoundHandler(async (req, reply) => {
+  reply.type('text/html')
+  reply.send(errorPage(req, reply, 404, "Page not found"))
+})
 fastify.get('/api/archive', async (req, reply) => {
   return dbFilesSorted
 })
@@ -201,25 +207,31 @@ fastify.get('/', async (req, reply) => {
       { name: 'Link', value: `<${staticHost}/public/${staticFileName('index_css')}>; rel=preload; as=style` },
     ])
   }
-  const {
-    offset,
-    limit,
-    sort,
-    desc,
-    filters,
-    exclude,
-  } = extractQueryVars(req.query)
-  const filterFn = applyFilters(filters)
+  try {
+    const {
+      offset,
+      limit,
+      sort,
+      desc,
+      filters,
+      exclude,
+    } = extractQueryVars(req.query)
+    const filterFn = applyFilters(filters)
 
-  const data = db.data.breaches
-    .filter(filterFn)
-    .do(addPaginationData(req, offset, limit))
-    .sort(sortAny(sort, desc))
-    .slice(offset, offset + limit)
-    .map(obj => exclude && exclude.length ? omit(obj, exclude) : obj)
-    .map(obj => omit(obj, ['business_address', 'business_state', 'business_city', 'business_zip', 'notice_methods', 'dba']))
+    const data = db.data.breaches
+      .filter(filterFn)
+      .do(addPaginationData(req, offset, limit))
+      .sort(sortAny(sort, desc))
+      .slice(offset, offset + limit)
+      .map(obj => exclude && exclude.length ? omit(obj, exclude) : obj)
+      .map(obj => omit(obj, ['business_address', 'business_state', 'business_city', 'business_zip', 'notice_methods', 'dba']))
 
-  reply.send(indexPage(req, reply, data, filters))
+    reply.send(indexPage(req, reply, data, filters))
+  }
+  catch(e) {
+    console.error(e)
+    reply.send(errorPage(req, reply, 500, 'Unknown error'));
+  }
 })
 fastify.get('/breach-data.csv', async (req, reply) => {
   reply.type('text/csv')
@@ -258,28 +270,35 @@ fastify.get('/api/', async (req, reply) => {
 
 fastify.get('/hipaa', async (req, reply) => {
   reply.type('text/html')
-  const {
-    offset,
-    limit,
-    sort,
-    desc,
-    filters,
-    exclude,
-  } = extractQueryVars(req.query)
-  const filterFn = applyFilters(filters)
 
-  const data = db.data.breaches
-    // data_source is HIPAA-only and is how we identify these sources
-    // TODO: HIPAA boolean
-    .filter((entry) => entry.data_source)
-    .filter(filterFn)
-    .do(addPaginationData(req, offset, limit))
-    .sort(sortAny(sort, desc))
-    .slice(offset, offset + limit)
-    .map(obj => pick(obj, COLS_BY_STATE.HIPAA))
-    .map(obj => exclude && exclude.length ? omit(obj, exclude) : obj)
+  try {
+    const {
+      offset,
+      limit,
+      sort,
+      desc,
+      filters,
+      exclude,
+    } = extractQueryVars(req.query)
+    const filterFn = applyFilters(filters)
 
-  reply.send(hipaaPage(req, reply, data, filters))
+    const data = db.data.breaches
+      // data_source is HIPAA-only and is how we identify these sources
+      // TODO: HIPAA boolean
+      .filter((entry) => entry.data_source)
+      .filter(filterFn)
+      .do(addPaginationData(req, offset, limit))
+      .sort(sortAny(sort, desc))
+      .slice(offset, offset + limit)
+      .map(obj => pick(obj, COLS_BY_STATE.HIPAA))
+      .map(obj => exclude && exclude.length ? omit(obj, exclude) : obj)
+
+    reply.send(hipaaPage(req, reply, data, filters))
+  }
+  catch(e) {
+    console.error(e)
+    reply.send(errorPage(req, reply, 500, 'Unknown error'));
+  }
 })
 fastify.get('/hipaa.csv', async (req, reply) => {
   reply.type('text/csv')
@@ -331,29 +350,40 @@ fastify.get('/api/hipaa', async (req, reply) => {
 // http://localhost:3000/states/DE?limit=20&sort=number_affected&desc&exclude=breach_dates
 fastify.get('/states/:code', async (req, reply) => {
   reply.type('text/html')
-  const {
-    offset,
-    limit,
-    sort,
-    desc,
-    filters,
-    exclude,
-  } = extractQueryVars(req.query)
-  const { code: stateCode } = req.params
 
-  const filterFn = applyFilters(filters)
-  const data = db.data.breaches
-    .filter((breach) => (
-      breach.state === stateCode &&
-      filterFn(breach)
-    ))
-    .do(addPaginationData(req, offset, limit))
-    .sort(sortAny(sort, desc))
-    .slice(offset, offset + limit)
-    .map(obj => pick(obj, COLS_BY_STATE[stateCode] || COLS_BY_STATE.HIPAA))
-    .map(obj => exclude && exclude.length ? omit(obj, exclude) : obj)
+  try {
+    const {
+      offset,
+      limit,
+      sort,
+      desc,
+      filters,
+      exclude,
+    } = extractQueryVars(req.query)
+    const { code: stateCode } = req.params
 
-  reply.send(statePage(req, reply, data, filters, stateCode))
+    if (!STATES[stateCode]) {
+      reply.send(errorPage(req, reply, 404, 'Invalid state code'));
+      return;
+    }
+    const filterFn = applyFilters(filters)
+    const data = db.data.breaches
+      .filter((breach) => (
+        breach.state === stateCode &&
+        filterFn(breach)
+      ))
+      .do(addPaginationData(req, offset, limit))
+      .sort(sortAny(sort, desc))
+      .slice(offset, offset + limit)
+      .map(obj => pick(obj, COLS_BY_STATE[stateCode] || COLS_BY_STATE.HIPAA))
+      .map(obj => exclude && exclude.length ? omit(obj, exclude) : obj)
+
+    reply.send(statePage(req, reply, data, filters, stateCode))
+  }
+  catch(e) {
+    console.error(e)
+    reply.send(errorPage(req, reply, 500, 'Unknown error'));
+  }
 })
 fastify.get('/states/:code.csv', async (req, reply) => {
   reply.type('text/csv')
