@@ -16,7 +16,7 @@ body {
     width: 100vw;
 }
 h1, h2, h3, h4 {
-    color: #1a1a1a;
+    color: #183046;
 }
 header {
     margin-bottom: 2.5em;
@@ -126,12 +126,14 @@ table {
     min-width: 100%;
     table-layout: fixed;
 }
+tbody > tr:nth-child(even) {
+    background: #e9eaef;
+}
 th {
     background: #f6f6fa;
     border: 1px solid #ccccce;
     font-size: 1em;
     font-weight: normal;
-    line-height: 1.2em;
     padding: 0 0.5em;
     text-align: left;
     vertical-align: bottom;
@@ -176,11 +178,11 @@ main > p {
     width: 48em;
 }
 label {
-    color: #696969;
+    color: #69696a;
     display: block;
 }
 button {
-    background: #4b88c2;
+    background: #3d7bb5;
     border: 0;
     border-radius: 0.25em;
     color: #fff;
@@ -227,7 +229,7 @@ code {
     float: right;
 }
 footer {
-    background: #4b88c2;
+    background: #3d7bb5;
     bottom: 0;
     color: #fff;
     left: 0;
