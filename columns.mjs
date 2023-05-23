@@ -68,6 +68,7 @@ export const COLS_BY_STATE = {
   DE: ['entity_name', 'start_date', 'end_date', 'breach_dates', 'reported_date', 'number_affected', 'breach_type', 'data_source'],
   HI: ['entity_name', 'reported_date', 'number_affected', 'breach_type', 'data_source', 'letter_url'],
   IA: ['entity_name', 'reported_date', 'number_affected', 'breach_type', 'data_source', 'letter_url'],
+  MA: ['entity_name', 'reported_date', 'number_affected', 'breach_type', 'data_source'],
   MD: ['entity_name', 'reported_date', 'number_affected', 'data_accessed', 'breach_type', 'data_source'],
   ME: ['entity_name', 'reported_date', 'number_affected', 'breach_type', 'data_source', 'url'],
   MT: ['entity_name', 'letter_url', 'start_date', 'end_date', 'reported_date', 'number_affected', 'breach_type', 'data_source'],

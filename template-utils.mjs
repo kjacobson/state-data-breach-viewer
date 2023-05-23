@@ -64,6 +64,7 @@ export const STATES = {
   },
   MA: {
     name: 'Massachusetts',
+    site: 'https://www.mass.gov/lists/data-breach-reports',
   },
   ME: {
     name: 'Maine',
